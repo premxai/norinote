@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/logo";
-import { DemoButton } from "@/components/demo";
+import Link from "next/link";
 import { navLinks } from "@/lib/site";
 
 const linkBase =
@@ -11,17 +11,6 @@ const linkBase =
 export function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [current, setCurrent] = useState<string | null>(null);
-  // The nav button only appears once the hero button has scrolled away, so the fold keeps one call to action.
-  const [showCta, setShowCta] = useState(false);
-
-  useEffect(() => {
-    const heroCta = document.getElementById("hero-cta");
-    if (!heroCta) return;
-    const io = new IntersectionObserver(([e]) => setShowCta(!e.isIntersecting));
-    io.observe(heroCta);
-    return () => io.disconnect();
-  }, []);
-
   useEffect(() => {
     const sections = navLinks.filter((l) => l.ready).map((l) => document.getElementById(l.id)).filter(Boolean) as HTMLElement[];
     const io = new IntersectionObserver(
@@ -108,9 +97,18 @@ export function Nav() {
                 </li>
               ))}
             </ul>
-            <div className={`hidden transition-opacity duration-300 ease-base md:block ${showCta ? "opacity-100" : "pointer-events-none opacity-0"}`} aria-hidden={!showCta}>
-              <DemoButton size="sm" tone={dark ? "dark" : "light"} className={showCta ? "" : "invisible"} />
-            </div>
+            <Link
+              href="/signin"
+              className={`${linkBase} hidden md:block ${dark ? "text-night-muted hover:text-night-ink" : "text-muted hover:text-ink"}`}
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/signup"
+              className={`rounded-full px-3 py-2 text-sm font-semibold transition duration-300 ease-base hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp ${dark ? "bg-night-ink text-night hover:bg-white" : "bg-ink text-paper hover:bg-[#2A2822]"}`}
+            >
+              Get started
+            </Link>
             <button
               type="button"
               onClick={() => setMenuOpen((o) => !o)}
@@ -139,8 +137,13 @@ export function Nav() {
               )}
             </li>
           ))}
-          <li style={{ transitionDelay: `${Math.min(navLinks.length * 60, 400)}ms` }} className="mt-6" onClick={() => setMenuOpen(false)}>
-            <DemoButton />
+          <li style={{ transitionDelay: `${Math.min(navLinks.length * 60, 400)}ms` }} className="mt-6 flex flex-col gap-3">
+            <Link href="/signup" onClick={() => setMenuOpen(false)} className="flex items-center justify-center rounded-xl bg-ink px-3 py-2 text-base font-semibold text-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+              Get started
+            </Link>
+            <Link href="/signin" onClick={() => setMenuOpen(false)} className="flex items-center justify-center rounded-xl border border-line px-3 py-2 text-base font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+              Sign in
+            </Link>
           </li>
         </ul>
       </div>

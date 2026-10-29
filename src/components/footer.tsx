@@ -13,9 +13,10 @@ const columns = [
     ],
   },
   {
-    title: "Project",
+    title: "Account",
     links: [
-      { label: "Dashboard", href: site.dashboardUrl },
+      { label: "Create account", href: "/signup" },
+      { label: "Sign in", href: "/signin" },
       { label: "GitHub", href: site.githubUrl },
     ],
   },

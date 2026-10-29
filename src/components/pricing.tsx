@@ -1,6 +1,6 @@
-import { ArrowUpRight, CheckCircle } from "@phosphor-icons/react/dist/ssr";
+import Link from "next/link";
+import { ArrowRight, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
-import { site } from "@/lib/site";
 
 // Placeholder tiers: names, limits and the $19 price are not final. Pro at $9 is the agreed price.
 const plans = [
@@ -83,13 +83,13 @@ export function Pricing() {
                 ))}
               </ul>
               <div className="mt-auto pt-8">
-              <a
-                href={site.dashboardUrl}
+              <Link
+                href={`/signup?plan=${p.name.toLowerCase()}`}
                 className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-base font-semibold transition duration-300 ease-base hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp ${p.featured ? "bg-ink text-paper hover:bg-[#2A2822]" : "border border-line hover:bg-tone"}`}
               >
                 {p.cta}
-                <ArrowUpRight size={18} weight="bold" aria-hidden="true" />
-              </a>
+                <ArrowRight size={18} weight="bold" aria-hidden="true" />
+              </Link>
               </div>
             </Reveal>
           ))}

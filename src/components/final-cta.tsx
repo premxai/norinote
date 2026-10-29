@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DemoButton } from "@/components/demo";
 import { Reveal } from "@/components/reveal";
 
@@ -14,7 +15,9 @@ export function FinalCta() {
           Watch Nori find a role, tailor a resume from facts you gave it, and wait for your OK.
         </p>
         <DemoButton className="mt-8" />
-        <p className="mt-4 text-sm text-muted">Start free. Pro is $9 a month, cancel anytime.</p>
+        <p className="mt-4 text-sm text-muted">
+          Or <Link href="/signup" className="font-medium text-ink underline underline-offset-4">create a free account</Link>. Pro is $9 a month, cancel anytime.
+        </p>
       </Reveal>
     </section>
   );
