@@ -15,7 +15,7 @@ const features: Feature[] = [
   },
   {
     title: "Turns job noise into a shortlist",
-    body: "Nori checks the Greenhouse, Lever, Ashby and SmartRecruiters boards you follow every 15 minutes and searches the wider web every few hours. Roles outside your titles, locations or minimum match are skipped, and every skip comes with a reason.",
+    body: "Nori checks the Greenhouse, Lever, Ashby and SmartRecruiters boards you follow every hour and searches the wider web every few hours. Roles outside your titles, locations or minimum match are skipped, and every skip comes with a reason.",
     Visual: ShortlistVisual,
   },
   {

@@ -23,10 +23,10 @@ const rounds: Round[] = [
     icon: Binoculars,
     name: "Board watch",
     job: "New roles on boards you follow",
-    cadence: "Every 15 min",
+    cadence: "Hourly",
     body: "Checks the Greenhouse, Lever, Ashby and SmartRecruiters boards you follow and scores every new role against your career graph.",
     scope: "Boards you follow",
-    sample: { label: "Board watch · 09:45", lines: ["12 new roles on boards you follow", "3 scored above your 70% match"] },
+    sample: { label: "Board watch · 10:00", lines: ["12 new roles on boards you follow", "3 scored above your 70% match"] },
   },
   {
     id: "web",

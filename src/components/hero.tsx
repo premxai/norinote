@@ -28,7 +28,7 @@ export function Hero() {
 
           <ul className="mt-6 flex animate-rise flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-muted [animation-delay:320ms]">
             <li className="flex items-center gap-2"><CheckCircle size={18} weight="duotone" className="text-kelp" aria-hidden="true" />Every resume passes 10 ATS checks</li>
-            <li className="flex items-center gap-2"><ShieldCheck size={18} weight="duotone" className="text-kelp" aria-hidden="true" />Nothing sent without your OK</li>
+            <li className="flex items-center gap-2"><ShieldCheck size={18} weight="duotone" className="text-kelp" aria-hidden="true" />You decide what gets sent</li>
           </ul>
         </div>
 

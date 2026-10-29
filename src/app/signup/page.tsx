@@ -39,7 +39,7 @@ export default function SignupPage() {
           </ol>
           <p className="mt-10 flex items-center gap-2 text-sm text-night-muted">
             <CheckCircle size={18} weight="duotone" className="text-kelp-bright" />
-            Nothing is sent without your OK.
+            Every application waits for your OK by default.
           </p>
         </>
       }

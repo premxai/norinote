@@ -32,7 +32,7 @@ const stats = [
   { label: "Roles found", value: 46, note: "Across 4 job systems", bars: [3, 5, 4, 6, 5, 8, 7, 9, 6, 8, 10, 9] },
   { label: "Skipped for you", value: 33, note: "Each one with a reason", bars: [6, 7, 5, 8, 6, 7, 9, 7, 8, 6, 7, 8] },
   { label: "Resumes tailored", value: 9, note: "10 of 10 ATS checks", bars: [1, 2, 1, 3, 2, 2, 3, 4, 3, 4, 5, 4] },
-  { label: "Waiting for you", value: 3, note: "Nothing sent without your OK", bars: [0, 1, 1, 0, 2, 1, 1, 2, 1, 2, 3, 3], highlight: true },
+  { label: "Waiting for you", value: 3, note: "Each one waits for your OK", bars: [0, 1, 1, 0, 2, 1, 1, 2, 1, 2, 3, 3], highlight: true },
 ];
 
 const timeline = [

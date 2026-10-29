@@ -11,7 +11,7 @@ const faqs: Item[] = [
   },
   {
     q: "How does Nori decide which roles to go after?",
-    a: "You set your lanes: titles, locations, remote and a minimum match, 70% by default. Nori checks the boards you follow every 15 minutes and searches the wider web every 6 hours, then skips anything below your bar and tells you why.",
+    a: "You set your lanes: titles, locations, remote and a minimum match, 70% by default. Nori checks the boards you follow every hour and searches the wider web every 6 hours, then skips anything below your bar and tells you why.",
   },
   {
     q: "Will Nori make things up on my resume?",
@@ -19,7 +19,7 @@ const faqs: Item[] = [
   },
   {
     q: "Is this just another spam bot?",
-    a: "No. Nothing is queued on its own until you set a daily cap, every application is tailored to its role, and each one waits for your OK.",
+    a: "No. Nothing is queued on its own until you set a daily cap, every application is tailored to its role, and by default each one waits for your OK.",
   },
   {
     q: "Will ATS software reject the resume?",
@@ -39,7 +39,7 @@ const faqs: Item[] = [
   },
   {
     q: "Does Nori ever submit an application without asking me?",
-    a: "Not by default. Review before submit is on from the start, so every filled application waits for you. You can turn it off in settings if you ever want Nori to send on its own, and it stays on until you do.",
+    a: "Not unless you turn on hands-free sending, and it starts off. Until then every filled application waits for you. If you switch it on, Nori sends by itself only when every check passes, for example a strong match, an ATS score of 70 or more and no application to that company in the last 30 days, and only after you have approved 3 applications yourself. Anything unusual still waits for you.",
   },
   {
     q: "What does Nori read in my email?",

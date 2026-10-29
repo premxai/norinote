@@ -29,9 +29,9 @@ const atsWeights = [
 
 const stats = [
   { value: 10, label: "ATS checks on every resume before it goes out" },
-  { value: 0, label: "Applications sent without your OK" },
+  { value: 3, label: "Applications you approve yourself before hands-free sending can start" },
   { value: 4, label: "Job systems searched: Greenhouse, Lever, Ashby and SmartRecruiters" },
-  { value: 205, label: "Automated tests keeping the agent honest" },
+  { value: 478, label: "Automated tests keeping the agent honest" },
 ];
 
 function TracedLine() {

@@ -139,6 +139,11 @@ export function AuthForm({ mode }: { mode: Mode }) {
         {errors.password
           ? <p id={`${ids.password}-err`} className="text-sm text-amber">{errors.password}</p>
           : signup && <p id={`${ids.password}-hint`} className="text-sm text-faint">At least 8 characters.</p>}
+        {!signup && (
+          <a href={`${site.dashboardUrl}/forgot-password`} className="w-fit self-end rounded text-sm font-medium text-ink underline underline-offset-4 transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+            Forgot password?
+          </a>
+        )}
       </div>
 
       <button type="submit" disabled={pending} aria-busy={pending}

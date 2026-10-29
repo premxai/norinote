@@ -55,7 +55,7 @@ export function Pricing() {
         <Reveal className="mx-auto max-w-[680px] text-center">
           <p className="font-mono text-xs tracking-widest text-muted uppercase">Pricing</p>
           <h2 id="pricing-title" className="mt-6 font-serif text-4xl leading-tight md:text-5xl">Pick the pace of your search.</h2>
-          <p className="mt-6 text-lg text-muted">Every plan uses the same agent and the same rules. Nothing goes out without your OK, and you can cancel anytime.</p>
+          <p className="mt-6 text-lg text-muted">Every plan uses the same agent and the same rules. Nothing goes out unless you say so, and you can cancel anytime.</p>
         </Reveal>
 
         <div className="mt-16 grid gap-6 lg:grid-cols-3">
