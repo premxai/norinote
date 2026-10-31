@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nori | The job agent that tailors every application</title>
+  <meta name="description" content="Nori finds roles that fit, writes a one page resume from your real experience, and applies only when you approve. Built for new grads and engineers.">
+  <meta property="og:title" content="Nori | The job agent that tailors every application">
+  <meta property="og:description" content="Nori finds roles that fit, writes a one page resume from your real experience, and applies only when you approve.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111111'/%3E%3Ccircle cx='11' cy='12' r='4' fill='%23F2734F'/%3E%3Ccircle cx='21' cy='12' r='4' fill='%233A8C66'/%3E%3Ccircle cx='16' cy='21' r='4' fill='%23F8F4EC'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      --font-serif: "Fraunces", ui-serif, Georgia, serif;
+      --color-canvas: #F8F4EC;
+      --color-paper: #FCFAF5;
+      --color-surface: #FFFFFF;
+      --color-ink: #1A1714;
+      --color-muted: #5C5650;
+      --color-line: #E4DED3;
+      --color-coral: #F2734F;
+      --color-rust: #C24E2C;
+      --color-mint: #3A8C66;
+      --color-forest: #2F7353;
+      --color-butter: #FFD166;
+      --ease-base: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    h1, h2, h3 { text-wrap: balance; }
+    p, li, dt { text-wrap: pretty; }
+
+    /* Paper grain over the whole page, so every section shares the hero's print texture. */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      pointer-events: none;
+      opacity: 0.09;
+      mix-blend-mode: multiply;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .1 0 0 0 0 .09 0 0 0 0 .08 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* Risograph halftone, used as a misregistered offset shadow behind printed cards.
+       Put .print-shadow on a wrapper with no background; the card inside paints over the dots. */
+    .dots-coral { --dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Ccircle cx='3' cy='3' r='1.8' fill='%23F2734F'/%3E%3C/svg%3E"); }
+    .dots-green { --dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Ccircle cx='3' cy='3' r='1.8' fill='%233A8C66'/%3E%3C/svg%3E"); }
+    .print-shadow { position: relative; isolation: isolate; }
+    .print-shadow::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      transform: translate(8px, 8px);
+      background-image: var(--dots);
+    }
+
+    /* Highlighter stroke made of coral halftone, for the traced resume line. */
+    .marker {
+      color: inherit;
+      background-color: transparent;
+      padding: 2px 4px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Ccircle cx='2' cy='2' r='1.4' fill='%23F2734F' fill-opacity='.55'/%3E%3C/svg%3E");
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+
+    /* Load entrance: rise 24px and fade, on the base curve. */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: none; }
+    }
+    .rise { opacity: 0; animation: rise 700ms var(--ease-base) forwards; }
+
+    /* Scroll reveal: rise 32px and fade, once, on the base curve. */
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity 700ms var(--ease-base), transform 700ms var(--ease-base); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* Tagline words: muted until the scroll reaches them, then full. */
+    .word { opacity: 0.25; transition: opacity 500ms var(--ease-base); }
+    .word.on { opacity: 1; }
+    .ink-underline { opacity: 0; transition: opacity 500ms var(--ease-base); }
+    .done .ink-underline { opacity: 1; }
+
+    dialog::backdrop { background: rgba(26, 23, 20, 0.45); backdrop-filter: blur(8px); }
+    dialog[open] .sheet { animation: rise 500ms var(--ease-base); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rise { animation: fade 300ms linear forwards; }
+      @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+      dialog[open] .sheet { animation: fade 300ms linear; }
+      .reveal { transform: none; transition: opacity 300ms linear; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-canvas font-serif text-ink antialiased">
+  <!-- Ink bleed for hand drawn marks -->
+  <svg width="0" height="0" class="absolute" aria-hidden="true" focusable="false">
+    <filter id="ink"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.5"/></filter>
+  </svg>
+
+  <a href="#main" class="sr-only z-50 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:top-4 focus:left-4">Skip to content</a>
+
+  <!-- Floating nav. Section links stay disabled until those sections exist. -->
+  <header class="fixed inset-x-0 top-4 z-40 flex justify-center px-4">
+    <nav aria-label="Main" class="flex items-center gap-6 rounded-full border border-line bg-paper/75 py-2 pr-4 pl-2 backdrop-blur-xl">
+      <a href="#main" aria-current="page" class="flex items-center gap-2 rounded-full pr-2 text-lg font-semibold transition-opacity duration-300 ease-base hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+        <span aria-hidden="true" class="relative block size-8 rounded-full bg-ink">
+          <span class="absolute top-2 left-2 size-2 rounded-full bg-coral"></span>
+          <span class="absolute top-2 right-2 size-2 rounded-full bg-mint"></span>
+          <span class="absolute bottom-2 left-3 size-2 rounded-full bg-canvas"></span>
+        </span>
+        Nori
+      </a>
+      <ul class="hidden items-center gap-6 text-sm sm:flex">
+        <li><span aria-disabled="true" class="cursor-not-allowed text-muted/50">How it works</span></li>
+        <li><span aria-disabled="true" class="cursor-not-allowed text-muted/50">Pricing</span></li>
+        <li><span aria-disabled="true" class="cursor-not-allowed text-muted/50">FAQ</span></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- Hero: the image fills the section; the copy sits in its empty left side. Below lg they stack. -->
+    <section aria-labelledby="hero-title" class="relative overflow-hidden">
+      <div class="relative z-10 px-6 pt-24 pb-12 lg:absolute lg:inset-y-0 lg:left-0 lg:flex lg:w-1/2 lg:flex-col lg:justify-center lg:pt-16 lg:pb-0 lg:pl-16 xl:pl-24">
+
+        <p class="rise flex w-fit items-center gap-2 rounded-full border border-line bg-paper py-1 pr-3 pl-2 text-sm text-muted" style="animation-delay: 0ms">
+          <span class="block size-2 rounded-full bg-mint" aria-hidden="true"></span>
+          For new grads and software engineers
+        </p>
+
+        <h1 id="hero-title" class="rise mt-6 max-w-[680px] bg-linear-to-r from-[#000000] to-[#666666] bg-clip-text pb-2 text-5xl font-semibold tracking-tight text-transparent 2xl:text-6xl" style="animation-delay: 80ms">
+          Get interview callbacks<br> without mass applying
+        </h1>
+
+        <p class="rise mt-6 max-w-lg text-lg text-muted" style="animation-delay: 160ms">
+          Nori finds roles that fit you, rewrites a one page resume using only facts from your history, and fills the application. Nothing gets sent until you say yes.
+        </p>
+
+        <button type="button" data-demo class="rise mt-8 flex w-fit items-center gap-2 rounded-xl bg-ink px-3 py-2 text-base font-semibold text-white transition-transform duration-300 ease-base hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral" style="animation-delay: 240ms">
+          <i class="ph-fill ph-play-circle text-xl" aria-hidden="true"></i>
+          Watch the 2 minute demo
+        </button>
+
+        <ul class="rise mt-4 flex flex-col gap-1 text-sm text-muted" style="animation-delay: 320ms">
+          <li>
+            <a href="https://github.com/premxai/Nori" class="flex w-fit items-center gap-1 rounded underline decoration-line underline-offset-4 transition-colors duration-300 ease-base hover:text-ink hover:decoration-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">
+              <i class="ph ph-github-logo text-base" aria-hidden="true"></i>
+              Open source on GitHub
+            </a>
+          </li>
+          <li class="flex items-center gap-1">
+            <i class="ph ph-seal-check text-base text-mint" aria-hidden="true"></i>
+            Every resume passes 10 ATS checks
+          </li>
+        </ul>
+      </div>
+
+      <img src="public/hero-keys.webp" width="1672" height="941"
+        alt="One key turns in the lock of a green door that has just opened, while a heap of identical keys lies ignored on the floor"
+        class="rise block aspect-[4/3] w-full object-cover object-right lg:aspect-video" style="animation-delay: 0ms">
+    </section>
+
+    <!-- Product preview: a flat view of the dashboard with the play button on top. -->
+    <section aria-label="Product preview" class="px-6 pt-12 pb-20">
+      <div class="reveal mx-auto w-full max-w-4xl">
+        <div class="print-shadow dots-green rounded-2xl"><div class="rounded-2xl border-2 border-ink bg-paper p-2">
+          <div class="relative aspect-video overflow-hidden rounded-lg bg-canvas text-left">
+
+            <div class="flex items-center gap-2 border-b border-line bg-paper px-4 py-2">
+              <span class="size-2 rounded-full bg-coral"></span>
+              <span class="size-2 rounded-full bg-butter"></span>
+              <span class="size-2 rounded-full bg-mint"></span>
+              <span class="ml-3 text-xs text-muted">jobs.norinote.xyz</span>
+            </div>
+
+            <div class="grid grid-cols-5 gap-4 p-4" aria-hidden="true">
+              <div class="col-span-2 flex flex-col gap-2">
+                <p class="text-xs font-semibold text-muted">Today's matches</p>
+                <div class="rounded-lg border border-ink bg-paper p-3">
+                  <p class="text-sm font-semibold">Frontend engineer</p>
+                  <p class="mt-1 flex justify-between text-xs text-muted">Kestrel Goods <span class="font-semibold text-forest">87% match</span></p>
+                </div>
+                <div class="rounded-lg border border-line bg-paper p-3">
+                  <p class="text-sm font-semibold">Software engineer, new grad</p>
+                  <p class="mt-1 flex justify-between text-xs text-muted">Larkspur Health <span class="font-semibold text-forest">81% match</span></p>
+                </div>
+                <div class="rounded-lg border border-line bg-paper p-3">
+                  <p class="text-sm font-semibold">React developer</p>
+                  <p class="mt-1 flex justify-between text-xs text-muted">Tidewater Labs <span class="font-semibold text-muted">74% match</span></p>
+                </div>
+              </div>
+
+              <div class="col-span-3 rounded-lg border border-line bg-paper p-4">
+                <p class="text-sm font-bold">Maya Okafor</p>
+                <p class="text-xs text-muted">Frontend engineer · Oakland, CA</p>
+                <div class="mt-3 flex flex-col gap-2">
+                  <span class="h-2 w-11/12 rounded-full bg-line"></span>
+                  <span class="h-2 w-9/12 rounded-full bg-line"></span>
+                </div>
+                <div class="mt-3 rounded-md border border-mint bg-mint/10 p-2">
+                  <p class="text-xs font-semibold">Cut checkout load time from 3.8s to 1.9s by moving product images to a CDN</p>
+                  <p class="mt-1 flex items-center gap-1 text-xs text-muted"><i class="ph ph-link-simple"></i> From your project: Storefront rewrite</p>
+                </div>
+                <div class="mt-3 flex flex-col gap-2">
+                  <span class="h-2 w-10/12 rounded-full bg-line"></span>
+                  <span class="h-2 w-8/12 rounded-full bg-line"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Play overlay -->
+            <button type="button" data-demo aria-label="Play the 2 minute demo" class="group absolute inset-0 flex items-center justify-center bg-canvas/40 transition-colors duration-300 ease-base hover:bg-canvas/20 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-coral">
+              <span class="flex size-20 items-center justify-center rounded-full border-2 border-ink bg-coral text-4xl text-ink transition-transform duration-500 ease-base group-hover:scale-105 group-active:scale-[0.98]">
+                <i class="ph-fill ph-play" aria-hidden="true"></i>
+              </span>
+            </button>
+          </div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- No. 1: the problem, then how Nori answers it -->
+    <section aria-labelledby="problem-title" class="px-6 py-20">
+      <div class="mx-auto max-w-6xl">
+        <div class="reveal max-w-[680px]">
+          <p class="text-xs font-semibold tracking-widest text-muted uppercase">No. 1 · The problem</p>
+          <h2 id="problem-title" class="mt-4 text-5xl font-semibold tracking-tight">More applications won't get you more callbacks</h2>
+          <p class="mt-6 text-lg text-muted">Auto apply tools send one resume to every opening and hope something sticks. Nori does the opposite: fewer applications, each one built for the role and checked by you.</p>
+        </div>
+
+        <div class="mt-16 grid gap-12 md:grid-cols-2 md:gap-8">
+          <article class="reveal flex flex-col rounded-2xl border-2 border-ink bg-paper p-2">
+            <img src="public/keys-pile.webp" width="620" height="330" alt="A heap of identical keys on one iron ring" class="h-48 w-full rounded-lg object-cover grayscale">
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold">Mass applying</h3>
+              <p class="mt-1 text-base text-muted">A ring of keys tried on every door</p>
+              <ul class="mt-6 flex flex-col gap-4 text-base text-muted">
+                <li class="flex gap-3"><svg class="mt-1 size-5 shrink-0 text-rust" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" filter="url(#ink)"/></svg>One generic resume goes to every opening</li>
+                <li class="flex gap-3"><svg class="mt-1 size-5 shrink-0 text-rust" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" filter="url(#ink)"/></svg>Keywords get stuffed in, whether you have the skill or not</li>
+                <li class="flex gap-3"><svg class="mt-1 size-5 shrink-0 text-rust" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" filter="url(#ink)"/></svg>Applications go out before you ever see them</li>
+                <li class="flex gap-3"><svg class="mt-1 size-5 shrink-0 text-rust" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5 L15 15 M15 5 L5 15" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" filter="url(#ink)"/></svg>Roles you can't take still get an application</li>
+              </ul>
+            </div>
+          </article>
+
+          <div class="reveal print-shadow dots-green rounded-2xl" style="transition-delay: 120ms"><article class="flex h-full flex-col rounded-2xl border-2 border-ink bg-paper p-2">
+            <img src="public/key-single.webp" width="380" height="350" alt="A single key turning in the lock of a green door" class="h-48 w-full rounded-lg object-cover">
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold">With Nori</h3>
+              <p class="mt-1 text-base text-muted">One key, cut for one door</p>
+              <ul class="mt-6 flex flex-col gap-4 text-base">
+                <li class="flex gap-3"><svg class="mt-1 size-5 shrink-0 text-forest" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5 L8.5 15 L16 5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#ink)"/></svg>A one page resume rewritten for each role</li>
+                <li class="flex gap-3"><svg class="mt-1 size-5 shrink-0 text-forest" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5 L8.5 15 L16 5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#ink)"/></svg>Only skills your history backs up, with gaps shown instead of hidden</li>
+                <li class="flex gap-3"><svg class="mt-1 size-5 shrink-0 text-forest" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5 L8.5 15 L16 5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#ink)"/></svg>Every application waits for your OK</li>
+                <li class="flex gap-3"><svg class="mt-1 size-5 shrink-0 text-forest" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5 L8.5 15 L16 5.5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#ink)"/></svg>Roles that don't fit your criteria get skipped, and Nori tells you why</li>
+              </ul>
+            </div>
+          </article></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tagline reveal: each word goes from muted to full as the line scrolls up. -->
+    <section aria-label="Our promise" class="px-6 py-16">
+      <h2 data-tagline class="mx-auto max-w-[680px] text-center text-5xl font-semibold tracking-tight lg:text-6xl">
+        Every line on your resume<br> points back to something<br>
+        <span class="relative inline-block">you actually did.<svg class="ink-underline absolute -bottom-2 left-0 h-3 w-full text-coral" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 8 C 50 3, 120 11, 197 5" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none" filter="url(#ink)"/></svg></span>
+      </h2>
+    </section>
+
+    <!-- No. 2: proof. A traced resume line, then facts about the product. -->
+    <section aria-labelledby="proof-title" class="px-6 pt-20 pb-24">
+      <div class="mx-auto max-w-6xl">
+        <div class="reveal max-w-[680px]">
+          <p class="text-xs font-semibold tracking-widest text-muted uppercase">No. 2 · The receipts</p>
+          <h2 id="proof-title" class="mt-4 text-5xl font-semibold tracking-tight">Don't take our word for it.<br> Check the receipts.</h2>
+          <p class="mt-6 text-lg text-muted">Every bullet Nori writes carries a link to the fact behind it. You can open that link before you approve, so nothing reaches a recruiter that you can't stand behind.</p>
+        </div>
+
+        <div class="reveal mt-16 grid items-center gap-8 lg:grid-cols-[1fr_auto_1fr]">
+          <!-- Printed resume excerpt -->
+          <div class="print-shadow dots-coral rounded-2xl"><article aria-label="Example resume" class="relative rounded-2xl border-2 border-ink bg-paper p-8">
+            <span class="absolute -top-4 right-6 -rotate-3 rounded-md border-2 border-rust bg-paper px-2 py-0.5 text-xs font-semibold tracking-widest text-rust uppercase">Example</span>
+            <p class="text-2xl font-semibold">Maya Okafor</p>
+            <p class="text-sm text-muted">Frontend engineer · Oakland, CA</p>
+            <p class="mt-6 text-xs font-semibold tracking-widest text-muted uppercase">Experience</p>
+            <p class="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 text-base font-semibold">Frontend engineer, Kestrel Goods <span class="text-sm font-normal text-muted">2023 to 2025</span></p>
+            <ul class="mt-3 flex list-disc flex-col gap-2 pl-4 text-sm marker:text-muted">
+              <li>Built a shared library of 38 interface components used by 4 product teams</li>
+              <li><mark class="marker">Cut checkout load time from 3.8s to 1.9s by moving product images to a CDN</mark></li>
+              <li>Shipped guest checkout, which grew to 41% of all orders within a quarter</li>
+            </ul>
+          </article></div>
+
+          <!-- Connector -->
+          <div class="flex flex-col items-center gap-2 text-xs font-semibold tracking-widest text-muted uppercase" aria-hidden="true">
+            <svg class="h-10 w-16 rotate-90 text-ink lg:rotate-0" viewBox="0 0 64 40"><path d="M4 20 H 54" stroke="currentColor" stroke-width="2.5" stroke-dasharray="2 7" stroke-linecap="round" fill="none"/><path d="M48 12 L 58 20 L 48 28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#ink)"/></svg>
+            Traces to
+          </div>
+
+          <!-- Source facts from the career graph -->
+          <div class="flex flex-col gap-4">
+            <div class="flex items-start gap-4 rounded-xl border-2 border-ink bg-paper p-4">
+              <span class="mt-0.5 w-20 shrink-0 text-xs font-semibold tracking-widest text-forest uppercase">Role</span>
+              <p class="text-base">Frontend engineer at Kestrel Goods, 2023 to 2025</p>
+            </div>
+            <div class="flex items-start gap-4 rounded-xl border-2 border-ink bg-paper p-4">
+              <span class="mt-0.5 w-20 shrink-0 text-xs font-semibold tracking-widest text-forest uppercase">Project</span>
+              <p class="text-base">Storefront rewrite: moved product images to a CDN</p>
+            </div>
+            <div class="flex items-start gap-4 rounded-xl border-2 border-ink bg-paper p-4">
+              <span class="mt-0.5 w-20 shrink-0 text-xs font-semibold tracking-widest text-forest uppercase">Result</span>
+              <p class="text-base">Checkout load time went from 3.8s to 1.9s</p>
+            </div>
+            <p class="text-sm text-muted">From Maya's career graph, built when she uploaded her resume.</p>
+          </div>
+        </div>
+
+        <!-- Facts about the product, all taken from the Nori codebase -->
+        <dl class="reveal mt-24 grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4">
+          <div class="flex flex-col-reverse justify-end gap-2">
+            <dt class="text-sm text-muted">ATS checks on every resume before it goes out</dt>
+            <dd class="text-6xl font-semibold tracking-tight">10</dd>
+          </div>
+          <div class="flex flex-col-reverse justify-end gap-2">
+            <dt class="text-sm text-muted">Applications sent without your OK</dt>
+            <dd class="text-6xl font-semibold tracking-tight">0</dd>
+          </div>
+          <div class="flex flex-col-reverse justify-end gap-2">
+            <dt class="text-sm text-muted">Job systems searched: Greenhouse, Lever, Ashby and SmartRecruiters</dt>
+            <dd class="text-6xl font-semibold tracking-tight">4</dd>
+          </div>
+          <div class="flex flex-col-reverse justify-end gap-2">
+            <dt class="text-sm text-muted">Automated tests keeping the agent honest</dt>
+            <dd class="text-6xl font-semibold tracking-tight">205</dd>
+          </div>
+        </dl>
+
+        <p class="reveal mt-16 flex items-center gap-3 text-sm text-muted">
+          <span class="rounded-md border-2 border-ink px-2 py-0.5 text-xs font-semibold tracking-widest text-ink uppercase">Hackathon</span>
+          Made at the Cline × Composio × Parallel hackathon, San Francisco, October 2026
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Demo dialog. Until a video URL is set, it shows a composed empty state. -->
+  <dialog id="demo" aria-labelledby="demo-title" class="m-auto w-full max-w-xl bg-transparent p-4 font-serif text-ink backdrop:bg-transparent">
+    <div class="sheet rounded-2xl border-2 border-ink bg-paper p-8 text-center">
+      <div data-video class="hidden aspect-video overflow-hidden rounded-lg bg-ink"></div>
+      <div data-empty>
+        <img src="public/key-single.webp" width="380" height="350" alt="" class="mx-auto size-24 rounded-full border-2 border-ink object-cover">
+        <h2 id="demo-title" class="mt-6 text-3xl font-semibold">The demo is being recorded</h2>
+        <p class="mt-3 text-base text-muted">It walks through Nori finding a role, tailoring the resume and waiting for your OK. Until it's ready, the full code is open on GitHub.</p>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <a href="https://github.com/premxai/Nori" class="flex items-center gap-2 rounded-xl bg-ink px-3 py-2 text-base font-semibold text-white transition-transform duration-300 ease-base hover:-translate-y-0.5 active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral">
+            <i class="ph ph-github-logo text-xl" aria-hidden="true"></i> Read the code
+          </a>
+          <button type="button" data-close class="rounded-xl border-2 border-ink px-3 py-2 text-base font-semibold transition-colors duration-300 ease-base hover:bg-canvas active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink">Close</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    // Paste the demo video embed URL here once it is recorded.
+    const DEMO_URL = "";
+
+    const dialog = document.getElementById("demo");
+    const videoBox = dialog.querySelector("[data-video]");
+    const empty = dialog.querySelector("[data-empty]");
+
+    document.querySelectorAll("[data-demo]").forEach((el) =>
+      el.addEventListener("click", () => {
+        if (DEMO_URL) {
+          videoBox.innerHTML = `<iframe class="size-full" src="${DEMO_URL}" title="Nori demo" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+          videoBox.classList.remove("hidden");
+          empty.classList.add("hidden");
+        }
+        dialog.showModal();
+      })
+    );
+    dialog.querySelector("[data-close]").addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+    dialog.addEventListener("close", () => { if (DEMO_URL) videoBox.innerHTML = ""; });
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -10% 0px" });
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+    // Tagline: wrap each word, then light words in reading order as the line's center
+    // moves from 90% to 55% of the viewport height. One rAF per frame at most.
+    const tagline = document.querySelector("[data-tagline]");
+    const walker = document.createTreeWalker(tagline, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach((node) => {
+      if (node.parentNode.closest("svg") || !node.textContent.trim()) return;
+      const frag = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach((part) => {
+        if (!part.trim()) { frag.append(part); return; }
+        const span = document.createElement("span");
+        span.className = "word";
+        span.textContent = part;
+        frag.append(span);
+      });
+      node.replaceWith(frag);
+    });
+    const words = [...tagline.querySelectorAll(".word")];
+    let lit = 0;
+    let queued = false;
+    const light = () => {
+      queued = false;
+      const r = tagline.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const center = r.top + r.height / 2;
+      const p = Math.min(1, Math.max(0, (vh * 0.9 - center) / (vh * 0.35)));
+      const n = Math.round(p * words.length);
+      for (; lit < n; lit++) words[lit].classList.add("on");
+      if (lit === words.length) {
+        tagline.classList.add("done");
+        window.removeEventListener("scroll", onScroll);
+      }
+    };
+    const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(light); } };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      words.forEach((w) => w.classList.add("on"));
+      tagline.classList.add("done");
+    } else {
+      window.addEventListener("scroll", onScroll, { passive: true });
+      light();
+    }
+  </script>
+</body>
+</html>

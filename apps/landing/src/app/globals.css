@@ -1,0 +1,80 @@
+/* Scan src/ explicitly so classes are found no matter which folder the dev server starts from. */
+@import "tailwindcss" source("../");
+
+@theme inline {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@theme {
+  /* Light surfaces */
+  --color-paper: #F5F4F0;
+  --color-tone: #F1F0EA;
+  --color-card: #FBFAF7;
+  --color-ink: #1A1914;
+  --color-muted: #5F5D55;
+  --color-faint: #8C897F;
+  --color-line: #E2DFD6;
+
+  /* Dark sections, from the skill's dark palette */
+  --color-night: #131209;
+  --color-night-card: #1F1F1F;
+  --color-night-ink: #EDEBE4;
+  --color-night-muted: #A3A097;
+  --color-night-line: #313131;
+
+  /* Accents */
+  --color-kelp: #0F766E;
+  --color-kelp-soft: #E3F1EE;
+  --color-kelp-bright: #5EC2B0;
+  --color-amber: #B45309;
+  --color-amber-soft: #FBEFDF;
+  --color-amber-light: #E9B872;
+
+  --ease-base: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-rise: rise 700ms var(--ease-base) both;
+  --animate-blink: blink 1600ms var(--ease-base) infinite alternate;
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes blink {
+    from { opacity: 1; }
+    to { opacity: 0.35; }
+  }
+}
+
+@layer base {
+  html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+  body { background-color: var(--color-paper); }
+  h1, h2, h3 { text-wrap: balance; }
+  p, li, dd, dt { text-wrap: pretty; }
+}
+
+/* Faint dot grid behind the hero, faded toward the edges with a mask (the fill itself stays flat). */
+.dot-grid {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1' fill='%23C9C5B9'/%3E%3C/svg%3E");
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 30%, transparent 80%);
+}
+
+/* Scroll reveal, once. The Reveal component adds .in when the element enters view. */
+.reveal { opacity: 0; transform: translateY(32px); transition: opacity 700ms var(--ease-base), transform 700ms var(--ease-base); }
+.reveal.in { opacity: 1; transform: none; }
+
+/* Mobile menu: full height panel, links rise in one after another. */
+.mobile-menu { opacity: 0; visibility: hidden; transition: opacity 300ms var(--ease-base), visibility 0s linear 300ms; }
+.mobile-menu li { opacity: 0; transform: translateY(24px); transition: opacity 500ms var(--ease-base), transform 500ms var(--ease-base); }
+.mobile-menu[data-open] { opacity: 1; visibility: visible; transition: opacity 300ms var(--ease-base); }
+.mobile-menu[data-open] li { opacity: 1; transform: none; }
+
+dialog::backdrop { background: rgb(19 18 9 / 0.45); backdrop-filter: blur(8px); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal, .mobile-menu li { transform: none !important; transition: opacity 300ms linear; }
+  .animate-rise { animation: none; }
+  .animate-blink { animation: none; }
+}

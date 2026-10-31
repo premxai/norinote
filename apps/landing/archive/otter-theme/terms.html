@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terms | Nori</title>
+  <meta name="description" content="The ground rules for using Nori. Last updated October 2026.">
+  
+  <link rel="icon" href="public/mascot/nori-mark.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+      --color-canvas: #FBFAF7;
+      --color-sand: #F4EFE6;
+      --color-surface: #FFFFFF;
+      --color-ink: #0F172A;
+      --color-muted: #475569;
+      --color-line: #E7E2D8;
+      --color-kelp: #0F766E;
+      --color-kelp-deep: #115E59;
+      --color-kelp-soft: #E3F1EE;
+      --ease-base: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    h1, h2 { text-wrap: balance; }
+    p, li { text-wrap: pretty; }
+    .slot-empty { display: none; }
+    .slot.missing > img { display: none; }
+    .slot.missing > .slot-empty { display: flex; }
+  </style>
+</head>
+<body class="min-h-screen bg-canvas font-sans text-ink antialiased">
+  <header class="px-6 pt-8">
+    <a href="index.html" class="mx-auto flex w-fit items-center gap-2 rounded-full text-lg font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+      <span class="slot block size-8 overflow-hidden rounded-full bg-kelp-soft">
+        <img src="public/mascot/nori-mark.png" alt="" class="size-full object-cover" onerror="this.parentElement.classList.add('missing')">
+        <span class="slot-empty size-full items-center justify-center text-sm font-bold text-kelp">N</span>
+      </span>
+      Nori
+    </a>
+  </header>
+
+  <main id="main" class="px-6 py-16">
+    <article class="mx-auto max-w-2xl">
+      <p class="rounded-2xl bg-sand p-4 text-sm text-muted">Draft. This page has not been reviewed by a lawyer yet.</p>
+      <h1 class="mt-8 text-4xl font-semibold tracking-tight">Terms</h1>
+      <p class="mt-6 text-lg text-muted">The ground rules for using Nori. Last updated October 2026.</p>
+      <h2 class="mt-12 text-2xl font-semibold">The service</h2>
+      <p class="mt-4 text-base text-muted">Nori finds roles, tailors resumes from facts you provide, and fills applications. It never submits an application without your approval.</p>
+      <h2 class="mt-12 text-2xl font-semibold">Your responsibilities</h2>
+      <p class="mt-4 text-base text-muted">You are responsible for the accuracy of the facts you give Nori and for every application you approve. Follow the terms of the job boards and employers you apply to.</p>
+      <h2 class="mt-12 text-2xl font-semibold">Billing</h2>
+      <p class="mt-4 text-base text-muted">The hosted plan costs $9 a month and you can cancel anytime. The open source version is free under the MIT license.</p>
+      <h2 class="mt-12 text-2xl font-semibold">No guarantees</h2>
+      <p class="mt-4 text-base text-muted">Nori cannot promise interviews or offers. Hiring decisions belong to employers.</p>
+      <a href="index.html" class="mt-12 flex w-fit items-center gap-2 rounded-xl border border-line px-3 py-2 text-base font-semibold transition duration-300 ease-base hover:-translate-y-0.5 hover:bg-sand active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp"><i class="ph-bold ph-arrow-left" aria-hidden="true"></i>Back to Nori</a>
+    </article>
+  </main>
+</body>
+</html>

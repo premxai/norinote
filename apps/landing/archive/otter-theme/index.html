@@ -1,0 +1,759 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nori | The job agent that tailors every application</title>
+  <meta name="description" content="Nori finds roles that fit, writes a one page resume from your real experience, and applies only when you approve. Built for new grads and engineers.">
+  <link rel="canonical" href="https://norinote.xyz/">
+  <meta property="og:title" content="Nori | The job agent that tailors every application">
+  <meta property="og:description" content="Nori finds roles that fit, writes a one page resume from your real experience, and applies only when you approve.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="public/mascot/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="public/mascot/nori-mark.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.11"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "I've applied to dozens of jobs and heard nothing back. Why would this be different?", "acceptedAnswer": { "@type": "Answer", "text": "Mass applying sends the same resume everywhere. Nori sends fewer applications, each one rewritten for the role and checked against the skills it asks for. Nobody can honestly promise interviews. Nori makes sure every application is aimed and fitted." } },
+      { "@type": "Question", "name": "How does Nori decide which jobs to apply to?", "acceptedAnswer": { "@type": "Answer", "text": "You set titles, locations, remote and a minimum match. Nori searches Greenhouse, Lever, Ashby and SmartRecruiters, skips anything below your bar, and tells you why it passed on each role." } },
+      { "@type": "Question", "name": "Will Nori make things up on my resume?", "acceptedAnswer": { "@type": "Answer", "text": "No. Every line links back to a fact you gave it. If a role asks for a skill you don't have, Nori shows you the gap instead of covering it up." } },
+      { "@type": "Question", "name": "Is this just another spam bot?", "acceptedAnswer": { "@type": "Answer", "text": "No. You set a daily cap, every application is tailored to its role, and none of them goes out without your OK." } },
+      { "@type": "Question", "name": "Will ATS software reject the resume?", "acceptedAnswer": { "@type": "Answer", "text": "Every resume goes through 10 checks before it's sent, including a single column layout, standard headings, dates on every role, bullets of 8 to 30 words, at least 70% of required skills covered, and a one page fit." } },
+      { "@type": "Question", "name": "Can I see what Nori changed?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Before you approve, you see every change and the fact it came from." } },
+      { "@type": "Question", "name": "Does Nori ever apply without asking me?", "acceptedAnswer": { "@type": "Answer", "text": "No. It fills the form and waits. You approve from the dashboard, Slack, Telegram, WhatsApp, email or MCP." } },
+      { "@type": "Question", "name": "What does Nori read in my email?", "acceptedAnswer": { "@type": "Answer", "text": "By default it checks up to 25 new messages from the last 24 hours, skipping mail you sent, to find recruiter replies, interview requests and verification codes. You can export everything Nori knows about you at any time." } }
+    ]
+  }
+  </script>
+
+  <style type="text/tailwindcss">
+    @theme {
+      --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+      --color-canvas: #FBFAF7;
+      --color-sand: #F4EFE6;
+      --color-surface: #FFFFFF;
+      --color-ink: #0F172A;
+      --color-muted: #475569;
+      --color-line: #E7E2D8;
+      --color-kelp: #0F766E;
+      --color-kelp-deep: #115E59;
+      --color-kelp-soft: #E3F1EE;
+      --color-rose: #B4413C;
+      --color-rose-soft: #F7E8E6;
+      --ease-base: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    h1, h2, h3 { text-wrap: balance; }
+    p, li, dt, dd, summary { text-wrap: pretty; }
+    html { scroll-behavior: smooth; scroll-padding-top: 96px; }
+
+    /* Image slots: show the art when the file exists, a labelled placeholder until then. */
+    .slot-empty { display: none; }
+    .slot.missing > img { display: none; }
+    .slot.missing > .slot-empty { display: flex; }
+
+    /* Load entrance */
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: none; }
+    }
+    .rise { opacity: 0; animation: rise 700ms var(--ease-base) forwards; }
+
+    /* Scroll reveal, once */
+    .reveal { opacity: 0; transform: translateY(32px); transition: opacity 700ms var(--ease-base), transform 700ms var(--ease-base); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* Tagline words */
+    .word { opacity: 0.25; transition: opacity 500ms var(--ease-base); }
+    .word.on { opacity: 1; }
+    .tag-underline { opacity: 0; transition: opacity 500ms var(--ease-base); }
+    .done .tag-underline { opacity: 1; }
+
+    /* Mobile menu: full height panel, links rise in one after another */
+    #mobile-menu { opacity: 0; visibility: hidden; transition: opacity 300ms var(--ease-base), visibility 0s linear 300ms; }
+    #mobile-menu li { opacity: 0; transform: translateY(24px); transition: opacity 500ms var(--ease-base), transform 500ms var(--ease-base); }
+    [data-menu-open] #mobile-menu { opacity: 1; visibility: visible; transition: opacity 300ms var(--ease-base); }
+    [data-menu-open] #mobile-menu li { opacity: 1; transform: none; }
+    .burger span { transition: transform 500ms var(--ease-base), opacity 300ms var(--ease-base); }
+    [data-menu-open] .burger span:first-child { transform: translateY(4px) rotate(45deg); }
+    [data-menu-open] .burger span:last-child { transform: translateY(-4px) rotate(-45deg); }
+
+    /* Nav link for the section in view */
+    .nav-link[aria-current="true"] { color: var(--color-ink); background: var(--color-kelp-soft); }
+
+    details summary::-webkit-details-marker { display: none; }
+    details .faq-plus { transition: transform 500ms var(--ease-base); }
+    details[open] .faq-plus { transform: rotate(45deg); }
+
+    dialog::backdrop { background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(8px); }
+    dialog[open] .sheet { animation: rise 500ms var(--ease-base); }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .rise { animation: fade 300ms linear forwards; }
+      @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+      dialog[open] .sheet { animation: fade 300ms linear; }
+      .reveal, #mobile-menu li { transform: none !important; transition: opacity 300ms linear; }
+      .burger span, details .faq-plus { transition: none; }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-canvas font-sans text-ink antialiased">
+  <a href="#main" class="sr-only z-50 rounded-xl bg-ink px-3 py-2 text-sm font-semibold text-white focus:not-sr-only focus:fixed focus:top-4 focus:left-4">Skip to content</a>
+
+  <!-- ============ Navigation ============ -->
+  <header class="fixed inset-x-0 top-4 z-40 flex justify-center px-4">
+    <nav aria-label="Main" class="flex items-center gap-4 rounded-full border border-line bg-surface/75 py-2 pr-2 pl-2 backdrop-blur-xl sm:gap-6 sm:pr-3">
+      <a href="#top" aria-current="page" class="flex items-center gap-2 rounded-full pr-2 text-base font-semibold transition-opacity duration-300 ease-base hover:opacity-70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+        <span class="slot block size-8 overflow-hidden rounded-full bg-kelp-soft">
+          <img src="public/mascot/nori-mark.png" alt="" class="size-full object-cover" onerror="this.parentElement.classList.add('missing')">
+          <span class="slot-empty size-full items-center justify-center text-sm font-bold text-kelp">N</span>
+        </span>
+        Nori
+      </a>
+      <ul class="hidden items-center gap-1 text-sm font-medium text-muted sm:flex">
+        <li><a href="#how-it-works" data-spy="how-it-works" class="nav-link rounded-full px-3 py-2 transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">How it works</a></li>
+        <li><a href="#pricing" data-spy="pricing" class="nav-link rounded-full px-3 py-2 transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">Pricing</a></li>
+        <li><a href="#faq" data-spy="faq" class="nav-link rounded-full px-3 py-2 transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">FAQ</a></li>
+      </ul>
+      <button type="button" class="burger flex size-10 flex-col items-center justify-center gap-2 rounded-full transition-colors duration-300 ease-base hover:bg-sand focus-visible:outline-2 focus-visible:outline-kelp sm:hidden" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu" data-menu-toggle>
+        <span class="block h-0.5 w-4 rounded-full bg-ink"></span>
+        <span class="block h-0.5 w-4 rounded-full bg-ink"></span>
+      </button>
+    </nav>
+  </header>
+
+  <div id="mobile-menu" class="fixed inset-0 z-30 bg-canvas/95 px-6 pt-24 backdrop-blur-2xl sm:hidden">
+    <ul class="flex flex-col gap-2 text-3xl font-semibold">
+      <li style="transition-delay: 0ms"><a href="#how-it-works" class="block rounded-xl py-3 focus-visible:outline-2 focus-visible:outline-kelp">How it works</a></li>
+      <li style="transition-delay: 60ms"><a href="#pricing" class="block rounded-xl py-3 focus-visible:outline-2 focus-visible:outline-kelp">Pricing</a></li>
+      <li style="transition-delay: 120ms"><a href="#faq" class="block rounded-xl py-3 focus-visible:outline-2 focus-visible:outline-kelp">FAQ</a></li>
+      <li style="transition-delay: 180ms" class="mt-6"><button type="button" data-demo class="flex w-full items-center justify-center gap-2 rounded-xl bg-kelp px-3 py-2 text-base font-semibold text-white">Watch the 2 minute demo</button></li>
+    </ul>
+  </div>
+
+  <main id="main">
+
+    <!-- ============ Hero ============ -->
+    <section id="top" aria-labelledby="hero-title" class="px-6 pt-24 pb-16">
+      <div class="mx-auto grid max-w-7xl items-center gap-12 pt-12 lg:grid-cols-[1.3fr_1fr]">
+        <div>
+          <p class="rise flex w-fit items-center gap-2 rounded-full bg-kelp-soft py-1 pr-3 pl-2 text-sm font-medium text-kelp-deep" style="animation-delay: 0ms">
+            <i class="ph-duotone ph-graduation-cap text-base" aria-hidden="true"></i>
+            For new grads and software engineers
+          </p>
+
+          <h1 id="hero-title" class="rise mt-6 max-w-[680px] bg-linear-to-r from-[#000000] to-[#666666] bg-clip-text pb-2 text-4xl font-semibold tracking-tight text-transparent sm:text-5xl" style="animation-delay: 80ms">
+            Get interview callbacks<br class="hidden sm:block"> without mass applying
+          </h1>
+
+          <p class="rise mt-6 max-w-xl text-lg text-muted" style="animation-delay: 160ms">
+            Nori finds roles that fit you, rewrites a one page resume using only facts from your history, and fills the application. Nothing gets sent until you say yes.
+          </p>
+
+          <button type="button" data-demo class="rise mt-8 flex w-fit items-center gap-2 rounded-xl bg-kelp px-3 py-2 text-base font-semibold text-white transition duration-300 ease-base hover:-translate-y-0.5 hover:bg-kelp-deep active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp" style="animation-delay: 240ms">
+            <i class="ph-fill ph-play-circle text-xl" aria-hidden="true"></i>
+            Watch the 2 minute demo
+          </button>
+
+          <ul class="rise mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted" style="animation-delay: 320ms">
+            <li class="flex items-center gap-2"><i class="ph-duotone ph-seal-check text-lg text-kelp" aria-hidden="true"></i>Every resume passes 10 ATS checks</li>
+            <li>
+              <a href="https://github.com/premxai/Nori" class="flex items-center gap-2 rounded underline decoration-line underline-offset-4 transition-colors duration-300 ease-base hover:text-ink hover:decoration-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+                <i class="ph-duotone ph-github-logo text-lg text-ink" aria-hidden="true"></i>Open source on GitHub
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <figure class="slot rise mx-auto aspect-square w-full max-w-md" style="animation-delay: 200ms">
+          <img src="public/mascot/nori-hero.png" alt="Nori the otter at a small desk, holding up one neatly tailored resume" class="size-full object-contain" onerror="this.parentElement.classList.add('missing')">
+          <div class="slot-empty size-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-kelp/30 bg-kelp-soft p-6 text-center text-kelp-deep">
+            <i class="ph-duotone ph-image text-4xl" aria-hidden="true"></i>
+            <span class="text-sm font-semibold">nori-hero.png</span>
+            <span class="text-xs">Nori at a desk with one tailored resume</span>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ Product preview ============ -->
+    <section aria-label="Product preview" class="px-6 pb-24">
+      <div class="reveal mx-auto max-w-5xl">
+        <div class="rounded-3xl border border-line bg-surface p-2 shadow-sm">
+          <div class="relative aspect-video overflow-hidden rounded-2xl bg-canvas text-left">
+            <div class="flex items-center gap-2 border-b border-line bg-surface px-4 py-2">
+              <span class="size-2 rounded-full bg-line"></span>
+              <span class="size-2 rounded-full bg-line"></span>
+              <span class="size-2 rounded-full bg-line"></span>
+              <span class="ml-3 text-xs text-muted">jobs.norinote.xyz</span>
+            </div>
+            <div class="grid grid-cols-5 gap-4 p-4" aria-hidden="true">
+              <div class="col-span-2 flex flex-col gap-2">
+                <p class="text-xs font-semibold text-muted">Today's matches</p>
+                <div class="rounded-xl border border-kelp bg-surface p-3">
+                  <p class="text-sm font-semibold">Frontend engineer</p>
+                  <p class="mt-1 flex justify-between text-xs text-muted">Kestrel Goods <span class="font-semibold text-kelp">87% match</span></p>
+                </div>
+                <div class="rounded-xl border border-line bg-surface p-3">
+                  <p class="text-sm font-semibold">Software engineer, new grad</p>
+                  <p class="mt-1 flex justify-between text-xs text-muted">Larkspur Health <span class="font-semibold text-kelp">81% match</span></p>
+                </div>
+                <div class="rounded-xl border border-line bg-surface p-3">
+                  <p class="text-sm font-semibold">React developer</p>
+                  <p class="mt-1 flex justify-between text-xs text-muted">Tidewater Labs <span class="font-semibold text-muted">74% match</span></p>
+                </div>
+              </div>
+              <div class="col-span-3 rounded-xl border border-line bg-surface p-4">
+                <p class="text-sm font-semibold">Maya Okafor</p>
+                <p class="text-xs text-muted">Frontend engineer · Oakland, CA</p>
+                <div class="mt-3 flex flex-col gap-2">
+                  <span class="h-2 w-11/12 rounded-full bg-line"></span>
+                  <span class="h-2 w-9/12 rounded-full bg-line"></span>
+                </div>
+                <div class="mt-3 rounded-lg bg-kelp-soft p-2">
+                  <p class="text-xs font-semibold">Cut checkout load time from 3.8s to 1.9s by moving product images to a CDN</p>
+                  <p class="mt-1 flex items-center gap-1 text-xs text-kelp-deep"><i class="ph ph-link-simple"></i> From your project: Storefront rewrite</p>
+                </div>
+                <div class="mt-3 flex flex-col gap-2">
+                  <span class="h-2 w-10/12 rounded-full bg-line"></span>
+                  <span class="h-2 w-8/12 rounded-full bg-line"></span>
+                </div>
+              </div>
+            </div>
+            <button type="button" data-demo aria-label="Play the 2 minute demo" class="group absolute inset-0 flex items-center justify-center bg-canvas/40 transition-colors duration-300 ease-base hover:bg-canvas/20 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-kelp">
+              <span class="flex size-20 items-center justify-center rounded-full bg-kelp text-4xl text-white shadow-lg transition-transform duration-500 ease-base group-hover:scale-105 group-active:scale-[0.98]">
+                <i class="ph-fill ph-play" aria-hidden="true"></i>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Problem to solution ============ -->
+    <section id="problem" aria-labelledby="problem-title" class="bg-sand px-6 py-24">
+      <div class="mx-auto max-w-6xl">
+        <div class="reveal max-w-[680px]">
+          <p class="text-sm font-semibold text-kelp">The problem</p>
+          <h2 id="problem-title" class="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">More applications won't get you more callbacks</h2>
+          <p class="mt-6 text-lg text-muted">Auto apply tools send one resume to every opening and hope something sticks. Nori does the opposite: fewer applications, each one built for the role and checked by you.</p>
+        </div>
+
+        <div class="mt-12 grid gap-6 md:grid-cols-2">
+          <article class="reveal flex flex-col rounded-3xl border border-line bg-surface p-2">
+            <figure class="slot aspect-[16/9] w-full">
+              <img src="public/mascot/nori-buried.png" alt="Nori buried under a pile of identical resumes" class="size-full rounded-2xl bg-rose-soft object-contain" onerror="this.parentElement.classList.add('missing')">
+              <div class="slot-empty size-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-rose/30 bg-rose-soft p-6 text-center text-rose">
+                <i class="ph-duotone ph-image text-4xl" aria-hidden="true"></i>
+                <span class="text-sm font-semibold">nori-buried.png</span>
+                <span class="text-xs">Nori under a pile of identical resumes</span>
+              </div>
+            </figure>
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold">Mass applying</h3>
+              <ul class="mt-6 flex flex-col gap-4 text-base text-muted">
+                <li class="flex gap-3"><i class="ph-fill ph-x-circle mt-0.5 shrink-0 text-xl text-rose" aria-hidden="true"></i>One generic resume goes to every opening</li>
+                <li class="flex gap-3"><i class="ph-fill ph-x-circle mt-0.5 shrink-0 text-xl text-rose" aria-hidden="true"></i>Keywords get stuffed in, whether you have the skill or not</li>
+                <li class="flex gap-3"><i class="ph-fill ph-x-circle mt-0.5 shrink-0 text-xl text-rose" aria-hidden="true"></i>Applications go out before you ever see them</li>
+                <li class="flex gap-3"><i class="ph-fill ph-x-circle mt-0.5 shrink-0 text-xl text-rose" aria-hidden="true"></i>Roles you can't take still get an application</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="reveal flex flex-col rounded-3xl border-2 border-kelp bg-surface p-2" style="transition-delay: 120ms">
+            <figure class="slot aspect-[16/9] w-full">
+              <img src="public/mascot/nori-tailor.png" alt="Nori carefully measuring and pinning a single resume page" class="size-full rounded-2xl bg-kelp-soft object-contain" onerror="this.parentElement.classList.add('missing')">
+              <div class="slot-empty size-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-kelp/30 bg-kelp-soft p-6 text-center text-kelp-deep">
+                <i class="ph-duotone ph-image text-4xl" aria-hidden="true"></i>
+                <span class="text-sm font-semibold">nori-tailor.png</span>
+                <span class="text-xs">Nori tailoring one resume page</span>
+              </div>
+            </figure>
+            <div class="p-6">
+              <h3 class="text-2xl font-semibold">With Nori</h3>
+              <ul class="mt-6 flex flex-col gap-4 text-base">
+                <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>A one page resume rewritten for each role</li>
+                <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Only skills your history backs up, with gaps shown instead of hidden</li>
+                <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Every application waits for your OK</li>
+                <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Roles that don't fit your criteria get skipped, and Nori tells you why</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Tagline reveal ============ -->
+    <section aria-label="Our promise" class="px-6 py-24">
+      <h2 data-tagline class="mx-auto max-w-[680px] text-center text-4xl font-semibold tracking-tight md:text-5xl">
+        Every line on your resume points back to something
+        <span class="relative inline-block">you actually did.<svg class="tag-underline absolute -bottom-2 left-0 h-3 w-full text-kelp" viewBox="0 0 200 12" preserveAspectRatio="none" aria-hidden="true"><path d="M3 8 C 50 3, 120 11, 197 5" stroke="currentColor" stroke-width="4" stroke-linecap="round" fill="none"/></svg></span>
+      </h2>
+    </section>
+
+    <!-- ============ Benefits ============ -->
+    <section id="benefits" aria-labelledby="benefits-title" class="px-6 pb-24">
+      <div class="mx-auto max-w-6xl">
+        <div class="reveal max-w-[680px]">
+          <p class="text-sm font-semibold text-kelp">What you get</p>
+          <h2 id="benefits-title" class="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">What Nori does before you say yes</h2>
+        </div>
+
+        <div class="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <article class="reveal rounded-3xl border border-line bg-surface p-8">
+            <span class="flex size-12 items-center justify-center rounded-2xl bg-kelp-soft text-2xl text-kelp" aria-hidden="true"><i class="ph-duotone ph-crosshair"></i></span>
+            <h3 class="mt-6 text-xl font-semibold">Fewer applications, better aimed</h3>
+            <p class="mt-3 text-base text-muted">Nori searches 4 applicant tracking systems: Greenhouse, Lever, Ashby and SmartRecruiters. It skips roles below your match score and tells you why.</p>
+          </article>
+          <article class="reveal rounded-3xl border border-line bg-surface p-8" style="transition-delay: 60ms">
+            <span class="flex size-12 items-center justify-center rounded-2xl bg-kelp-soft text-2xl text-kelp" aria-hidden="true"><i class="ph-duotone ph-file-text"></i></span>
+            <h3 class="mt-6 text-xl font-semibold">A new 1 page resume for every role</h3>
+            <p class="mt-3 text-base text-muted">Each version is checked to cover at least 70% of the skills the posting asks for. When your history falls short, Nori says so.</p>
+          </article>
+          <article class="reveal rounded-3xl border border-line bg-surface p-8" style="transition-delay: 120ms">
+            <span class="flex size-12 items-center justify-center rounded-2xl bg-kelp-soft text-2xl text-kelp" aria-hidden="true"><i class="ph-duotone ph-list-checks"></i></span>
+            <h3 class="mt-6 text-xl font-semibold">Passes 10 ATS checks first</h3>
+            <p class="mt-3 text-base text-muted">Single column, standard headings, dates on every role, and bullets of 8 to 30 words that each start with an action verb.</p>
+          </article>
+          <article class="reveal rounded-3xl border border-line bg-surface p-8">
+            <span class="flex size-12 items-center justify-center rounded-2xl bg-kelp-soft text-2xl text-kelp" aria-hidden="true"><i class="ph-duotone ph-tree-structure"></i></span>
+            <h3 class="mt-6 text-xl font-semibold">Nothing made up, ever</h3>
+            <p class="mt-3 text-base text-muted">Every bullet links back to one of 5 kinds of facts you gave it: roles, projects, skills, results and education.</p>
+          </article>
+          <article class="reveal rounded-3xl border border-line bg-surface p-8" style="transition-delay: 60ms">
+            <span class="flex size-12 items-center justify-center rounded-2xl bg-kelp-soft text-2xl text-kelp" aria-hidden="true"><i class="ph-duotone ph-hand-tap"></i></span>
+            <h3 class="mt-6 text-xl font-semibold">You approve every send, from 6 places</h3>
+            <p class="mt-3 text-base text-muted">The dashboard, Slack, Telegram, WhatsApp, email, or your code editor through MCP.</p>
+          </article>
+          <a href="#proof" class="reveal group flex flex-col justify-between rounded-3xl bg-kelp p-8 text-white transition duration-300 ease-base hover:bg-kelp-deep active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp" style="transition-delay: 120ms">
+            <p class="text-xl font-semibold">Every number on this page comes from Nori's own code.</p>
+            <span class="mt-6 flex items-center gap-2 text-base font-semibold">See the receipts <i class="ph-bold ph-arrow-down transition-transform duration-500 ease-base group-hover:translate-y-0.5" aria-hidden="true"></i></span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ How it works ============ -->
+    <section id="how-it-works" aria-labelledby="how-title" class="px-6 pb-24">
+      <div class="mx-auto max-w-6xl">
+        <div class="reveal max-w-[680px]">
+          <p class="text-sm font-semibold text-kelp">How it works</p>
+          <h2 id="how-title" class="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">Set it up once. Approve from anywhere.</h2>
+        </div>
+
+        <ol class="mt-12 grid gap-6 md:grid-cols-3">
+          <li class="reveal flex flex-col rounded-3xl border border-line bg-surface p-2">
+            <figure class="slot aspect-square w-full">
+              <img src="public/mascot/nori-step-1.png" alt="Nori reading a resume and pinning its facts to a board" class="size-full rounded-2xl bg-sand object-contain" onerror="this.parentElement.classList.add('missing')">
+              <div class="slot-empty size-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-kelp/30 bg-kelp-soft p-6 text-center text-kelp-deep">
+                <i class="ph-duotone ph-image text-4xl" aria-hidden="true"></i>
+                <span class="text-sm font-semibold">nori-step-1.png</span>
+                <span class="text-xs">Nori reading your resume</span>
+              </div>
+            </figure>
+            <div class="p-6">
+              <p class="text-sm font-semibold text-kelp">Step 1</p>
+              <h3 class="mt-2 text-xl font-semibold">Upload your resume</h3>
+              <p class="mt-3 text-base text-muted">Nori turns it into a map of your roles, projects, skills, results and education.</p>
+            </div>
+          </li>
+          <li class="reveal flex flex-col rounded-3xl border border-line bg-surface p-2" style="transition-delay: 60ms">
+            <figure class="slot aspect-square w-full">
+              <img src="public/mascot/nori-step-2.png" alt="Nori with a map and compass, marking the roles to look for" class="size-full rounded-2xl bg-sand object-contain" onerror="this.parentElement.classList.add('missing')">
+              <div class="slot-empty size-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-kelp/30 bg-kelp-soft p-6 text-center text-kelp-deep">
+                <i class="ph-duotone ph-image text-4xl" aria-hidden="true"></i>
+                <span class="text-sm font-semibold">nori-step-2.png</span>
+                <span class="text-xs">Nori with a map, setting the lanes</span>
+              </div>
+            </figure>
+            <div class="p-6">
+              <p class="text-sm font-semibold text-kelp">Step 2</p>
+              <h3 class="mt-2 text-xl font-semibold">Set your lanes once</h3>
+              <p class="mt-3 text-base text-muted">Pick titles, locations, remote, a minimum match and a daily cap.</p>
+            </div>
+          </li>
+          <li class="reveal flex flex-col rounded-3xl border border-line bg-surface p-2" style="transition-delay: 120ms">
+            <figure class="slot aspect-square w-full">
+              <img src="public/mascot/nori-step-3.png" alt="Nori holding up a finished application and waiting for a thumbs up" class="size-full rounded-2xl bg-sand object-contain" onerror="this.parentElement.classList.add('missing')">
+              <div class="slot-empty size-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-kelp/30 bg-kelp-soft p-6 text-center text-kelp-deep">
+                <i class="ph-duotone ph-image text-4xl" aria-hidden="true"></i>
+                <span class="text-sm font-semibold">nori-step-3.png</span>
+                <span class="text-xs">Nori waiting for your OK</span>
+              </div>
+            </figure>
+            <div class="p-6">
+              <p class="text-sm font-semibold text-kelp">Step 3</p>
+              <h3 class="mt-2 text-xl font-semibold">Approve, then Nori applies</h3>
+              <p class="mt-3 text-base text-muted">It finds new roles, tailors the resume, fills the form and waits for your yes.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ Proof ============ -->
+    <section id="proof" aria-labelledby="proof-title" class="bg-sand px-6 py-24">
+      <div class="mx-auto max-w-6xl">
+        <div class="reveal max-w-[680px]">
+          <p class="text-sm font-semibold text-kelp">The receipts</p>
+          <h2 id="proof-title" class="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">Don't take our word for it. Check the receipts.</h2>
+          <p class="mt-6 text-lg text-muted">Every bullet Nori writes carries a link to the fact behind it. You can open that link before you approve, so nothing reaches a recruiter that you can't stand behind.</p>
+        </div>
+
+        <div class="reveal mt-12 grid items-center gap-6 lg:grid-cols-[1fr_auto_1fr]">
+          <article aria-label="Example resume" class="relative rounded-3xl border border-line bg-surface p-8">
+            <span class="absolute top-6 right-6 rounded-full bg-sand px-3 py-1 text-xs font-semibold text-muted">Example</span>
+            <p class="text-2xl font-semibold">Maya Okafor</p>
+            <p class="text-sm text-muted">Frontend engineer · Oakland, CA</p>
+            <p class="mt-6 text-xs font-semibold tracking-wide text-muted uppercase">Experience</p>
+            <p class="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 text-base font-semibold">Frontend engineer, Kestrel Goods <span class="text-sm font-normal text-muted">2023 to 2025</span></p>
+            <ul class="mt-3 flex list-disc flex-col gap-2 pl-4 text-sm marker:text-muted">
+              <li>Built a shared library of 38 interface components used by 4 product teams</li>
+              <li><mark class="rounded bg-kelp-soft px-1 text-ink">Cut checkout load time from 3.8s to 1.9s by moving product images to a CDN</mark></li>
+              <li>Shipped guest checkout, which grew to 41% of all orders within a quarter</li>
+            </ul>
+          </article>
+
+          <div class="flex flex-col items-center gap-2 text-xs font-semibold text-kelp" aria-hidden="true">
+            <span class="flex size-12 items-center justify-center rounded-full bg-kelp text-xl text-white"><i class="ph-bold ph-arrow-right hidden lg:block"></i><i class="ph-bold ph-arrow-down lg:hidden"></i></span>
+            Traces to
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <div class="flex items-start gap-4 rounded-2xl border border-line bg-surface p-4">
+              <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-kelp-soft text-xl text-kelp" aria-hidden="true"><i class="ph-duotone ph-briefcase"></i></span>
+              <div><p class="text-xs font-semibold text-kelp">Role</p><p class="text-base">Frontend engineer at Kestrel Goods, 2023 to 2025</p></div>
+            </div>
+            <div class="flex items-start gap-4 rounded-2xl border border-line bg-surface p-4">
+              <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-kelp-soft text-xl text-kelp" aria-hidden="true"><i class="ph-duotone ph-folder-simple"></i></span>
+              <div><p class="text-xs font-semibold text-kelp">Project</p><p class="text-base">Storefront rewrite: moved product images to a CDN</p></div>
+            </div>
+            <div class="flex items-start gap-4 rounded-2xl border border-line bg-surface p-4">
+              <span class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-kelp-soft text-xl text-kelp" aria-hidden="true"><i class="ph-duotone ph-chart-line-up"></i></span>
+              <div><p class="text-xs font-semibold text-kelp">Result</p><p class="text-base">Checkout load time went from 3.8s to 1.9s</p></div>
+            </div>
+            <p class="text-sm text-muted">From Maya's career graph, built when she uploaded her resume.</p>
+          </div>
+        </div>
+
+        <dl class="reveal mt-16 grid grid-cols-2 gap-6 md:grid-cols-4">
+          <div class="flex flex-col-reverse justify-end gap-2 rounded-3xl bg-surface p-6">
+            <dt class="text-sm text-muted">ATS checks on every resume before it goes out</dt>
+            <dd class="text-5xl font-semibold tracking-tight text-kelp">10</dd>
+          </div>
+          <div class="flex flex-col-reverse justify-end gap-2 rounded-3xl bg-surface p-6">
+            <dt class="text-sm text-muted">Applications sent without your OK</dt>
+            <dd class="text-5xl font-semibold tracking-tight text-kelp">0</dd>
+          </div>
+          <div class="flex flex-col-reverse justify-end gap-2 rounded-3xl bg-surface p-6">
+            <dt class="text-sm text-muted">Job systems searched: Greenhouse, Lever, Ashby and SmartRecruiters</dt>
+            <dd class="text-5xl font-semibold tracking-tight text-kelp">4</dd>
+          </div>
+          <div class="flex flex-col-reverse justify-end gap-2 rounded-3xl bg-surface p-6">
+            <dt class="text-sm text-muted">Automated tests keeping the agent honest</dt>
+            <dd class="text-5xl font-semibold tracking-tight text-kelp">205</dd>
+          </div>
+        </dl>
+
+        <p class="reveal mt-8 flex flex-wrap items-center gap-3 text-sm text-muted">
+          <span class="flex items-center gap-1 rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink"><i class="ph-duotone ph-trophy text-sm text-kelp" aria-hidden="true"></i>Hackathon build</span>
+          Made at the Cline × Composio × Parallel hackathon, San Francisco, October 2026
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ Pricing ============ -->
+    <section id="pricing" aria-labelledby="pricing-title" class="px-6 py-24">
+      <div class="mx-auto max-w-5xl">
+        <div class="reveal mx-auto max-w-[680px] text-center">
+          <p class="text-sm font-semibold text-kelp">Pricing</p>
+          <h2 id="pricing-title" class="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">Let us run it, or run it yourself</h2>
+          <p class="mt-6 text-lg text-muted">Both use the same agent and the same rules. Nothing is sent without your OK either way.</p>
+        </div>
+
+        <div class="mt-12 grid gap-6 md:grid-cols-2">
+          <article class="reveal flex flex-col rounded-3xl border-2 border-kelp bg-surface p-8">
+            <div class="flex items-center justify-between gap-4">
+              <h3 class="text-xl font-semibold">Hosted</h3>
+              <span class="rounded-full bg-kelp-soft px-3 py-1 text-xs font-semibold text-kelp-deep">Recommended</span>
+            </div>
+            <p class="mt-6 flex items-baseline gap-1"><span class="text-5xl font-semibold tracking-tight">$9</span><span class="text-base text-muted">a month</span></p>
+            <p class="mt-2 text-base text-muted">We run Nori for you. Nothing to install.</p>
+            <ul class="mt-8 flex flex-col gap-3 text-base">
+              <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Your dashboard at jobs.norinote.xyz</li>
+              <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Daily search across 4 job systems</li>
+              <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Approve from Slack, Telegram, WhatsApp or email</li>
+              <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Cancel anytime</li>
+            </ul>
+            <a href="https://jobs.norinote.xyz" class="mt-8 flex items-center justify-center gap-2 rounded-xl bg-kelp px-3 py-2 text-base font-semibold text-white transition duration-300 ease-base hover:-translate-y-0.5 hover:bg-kelp-deep active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">Start for $9 a month</a>
+          </article>
+
+          <article class="reveal flex flex-col rounded-3xl border border-line bg-surface p-8" style="transition-delay: 120ms">
+            <h3 class="text-xl font-semibold">Run it yourself</h3>
+            <p class="mt-6 flex items-baseline gap-1"><span class="text-5xl font-semibold tracking-tight">Free</span></p>
+            <p class="mt-2 text-base text-muted">MIT licensed. Your machine, your models.</p>
+            <ul class="mt-8 flex flex-col gap-3 text-base">
+              <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Local only mode keeps every file on your machine</li>
+              <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Bring your own model: Ollama, OpenRouter or Cline credits</li>
+              <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Export your career graph as JSON any time</li>
+              <li class="flex gap-3"><i class="ph-fill ph-check-circle mt-0.5 shrink-0 text-xl text-kelp" aria-hidden="true"></i>Drive it from your editor through MCP</li>
+            </ul>
+            <a href="https://github.com/premxai/Nori" class="mt-auto flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-2 text-base font-semibold transition duration-300 ease-base hover:-translate-y-0.5 hover:bg-sand active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp md:mt-8">
+              <i class="ph-duotone ph-github-logo text-xl" aria-hidden="true"></i>Read the setup guide
+            </a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq" aria-labelledby="faq-title" class="bg-sand px-6 py-24">
+      <div class="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1fr_1.6fr]">
+        <div class="reveal">
+          <p class="text-sm font-semibold text-kelp">FAQ</p>
+          <h2 id="faq-title" class="mt-3 text-4xl font-semibold tracking-tight md:text-5xl">Before you trust a job agent</h2>
+          <p class="mt-6 text-lg text-muted">The questions people ask us most, answered plainly.</p>
+        </div>
+
+        <div class="reveal flex flex-col gap-3">
+          <details class="group rounded-2xl bg-surface">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl p-6 text-lg font-semibold transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-kelp">I've applied to dozens of jobs and heard nothing back. Why would this be different?<i class="faq-plus ph-bold ph-plus shrink-0 text-xl text-kelp" aria-hidden="true"></i></summary>
+            <p class="px-6 pb-6 text-base text-muted">Mass applying sends the same resume everywhere. Nori sends fewer applications, each one rewritten for the role and checked against the skills it asks for. Nobody can honestly promise interviews. What Nori promises is that every application is aimed and fitted.</p>
+          </details>
+          <details class="group rounded-2xl bg-surface">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl p-6 text-lg font-semibold transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-kelp">How does Nori decide which jobs to apply to?<i class="faq-plus ph-bold ph-plus shrink-0 text-xl text-kelp" aria-hidden="true"></i></summary>
+            <p class="px-6 pb-6 text-base text-muted">You set your lanes: titles, locations, remote and a minimum match. Nori searches Greenhouse, Lever, Ashby and SmartRecruiters and skips anything below your bar. For every role it passes on, it says why.</p>
+          </details>
+          <details class="group rounded-2xl bg-surface">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl p-6 text-lg font-semibold transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-kelp">Will Nori make things up on my resume?<i class="faq-plus ph-bold ph-plus shrink-0 text-xl text-kelp" aria-hidden="true"></i></summary>
+            <p class="px-6 pb-6 text-base text-muted">No. Every line links back to a fact you gave it. If a role asks for a skill you don't have, Nori shows you the gap instead of covering it up.</p>
+          </details>
+          <details class="group rounded-2xl bg-surface">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl p-6 text-lg font-semibold transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-kelp">Is this just another spam bot?<i class="faq-plus ph-bold ph-plus shrink-0 text-xl text-kelp" aria-hidden="true"></i></summary>
+            <p class="px-6 pb-6 text-base text-muted">No. You set a daily cap, every application is tailored to its role, and none of them goes out without your OK.</p>
+          </details>
+          <details class="group rounded-2xl bg-surface">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl p-6 text-lg font-semibold transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-kelp">Will ATS software reject the resume?<i class="faq-plus ph-bold ph-plus shrink-0 text-xl text-kelp" aria-hidden="true"></i></summary>
+            <div class="px-6 pb-6 text-base text-muted">
+              <p>Every resume goes through 10 checks before it's sent:</p>
+              <ul class="mt-3 flex list-disc flex-col gap-1 pl-6">
+                <li>Single column, with no tables, images or icons</li>
+                <li>Standard section headings, in order</li>
+                <li>Contact details present</li>
+                <li>Dates on every role</li>
+                <li>Bullets of 8 to 30 words</li>
+                <li>Every bullet starts with an action verb</li>
+                <li>At least 70% of the required skills covered</li>
+                <li>Fits on one page</li>
+                <li>No first person pronouns</li>
+                <li>Plain, parser safe characters</li>
+              </ul>
+            </div>
+          </details>
+          <details class="group rounded-2xl bg-surface">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl p-6 text-lg font-semibold transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-kelp">Can I see what Nori changed?<i class="faq-plus ph-bold ph-plus shrink-0 text-xl text-kelp" aria-hidden="true"></i></summary>
+            <p class="px-6 pb-6 text-base text-muted">Yes. Before you approve, you see every change and the fact it came from.</p>
+          </details>
+          <details class="group rounded-2xl bg-surface">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl p-6 text-lg font-semibold transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-kelp">Does Nori ever apply without asking me?<i class="faq-plus ph-bold ph-plus shrink-0 text-xl text-kelp" aria-hidden="true"></i></summary>
+            <p class="px-6 pb-6 text-base text-muted">No. It fills the form and waits. You approve from the dashboard, Slack, Telegram, WhatsApp, email or MCP.</p>
+          </details>
+          <details class="group rounded-2xl bg-surface">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-6 rounded-2xl p-6 text-lg font-semibold transition-colors duration-300 ease-base hover:text-kelp focus-visible:outline-2 focus-visible:outline-kelp">What does Nori read in my email?<i class="faq-plus ph-bold ph-plus shrink-0 text-xl text-kelp" aria-hidden="true"></i></summary>
+            <p class="px-6 pb-6 text-base text-muted">By default it checks up to 25 new messages from the last 24 hours, skipping mail you sent. It looks for recruiter replies, interview requests and verification codes. You can export everything Nori knows about you at any time.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Final CTA ============ -->
+    <section aria-labelledby="final-title" class="px-6 py-24">
+      <div class="reveal mx-auto grid max-w-6xl items-center gap-12 rounded-3xl bg-kelp-soft p-8 md:grid-cols-[1.3fr_1fr] md:p-16">
+        <div>
+          <h2 id="final-title" class="text-4xl font-semibold tracking-tight">Send fewer applications.<br> Make every one count.</h2>
+          <p class="mt-6 max-w-lg text-lg text-muted">Watch Nori find a role, tailor a resume from real facts, and wait for your OK. It takes 2 minutes.</p>
+          <button type="button" data-demo class="mt-8 flex w-fit items-center gap-2 rounded-xl bg-kelp px-3 py-2 text-base font-semibold text-white transition duration-300 ease-base hover:-translate-y-0.5 hover:bg-kelp-deep active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+            <i class="ph-fill ph-play-circle text-xl" aria-hidden="true"></i>
+            Watch the 2 minute demo
+          </button>
+          <p class="mt-4 text-sm text-muted">Hosted plan $9 a month, cancel anytime. Free to run yourself.</p>
+        </div>
+        <figure class="slot mx-auto aspect-square w-full max-w-sm">
+          <img src="public/mascot/nori-wave.png" alt="Nori waving, holding a phone with an approved application" class="size-full object-contain" onerror="this.parentElement.classList.add('missing')">
+          <div class="slot-empty size-full flex-col items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-kelp/30 bg-surface p-6 text-center text-kelp-deep">
+            <i class="ph-duotone ph-image text-4xl" aria-hidden="true"></i>
+            <span class="text-sm font-semibold">nori-wave.png</span>
+            <span class="text-xs">Nori waving with a phone</span>
+          </div>
+        </figure>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ Footer ============ -->
+  <footer class="border-t border-line px-6 pt-16 pb-12">
+    <div class="mx-auto grid max-w-6xl gap-12 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
+      <div>
+        <a href="#top" class="flex w-fit items-center gap-2 rounded-full text-lg font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+          <span class="slot block size-8 overflow-hidden rounded-full bg-kelp-soft">
+            <img src="public/mascot/nori-mark.png" alt="" class="size-full object-cover" onerror="this.parentElement.classList.add('missing')">
+            <span class="slot-empty size-full items-center justify-center text-sm font-bold text-kelp">N</span>
+          </span>
+          Nori
+        </a>
+        <p class="mt-4 max-w-xs text-sm text-muted">A job agent that tailors every application from your real experience, and never sends one without your OK.</p>
+      </div>
+      <nav aria-label="Product">
+        <p class="text-sm font-semibold">Product</p>
+        <ul class="mt-4 flex flex-col gap-3 text-sm text-muted">
+          <li><a href="#how-it-works" class="transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">How it works</a></li>
+          <li><a href="#pricing" class="transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">Pricing</a></li>
+          <li><a href="#faq" class="transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">FAQ</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Project">
+        <p class="text-sm font-semibold">Project</p>
+        <ul class="mt-4 flex flex-col gap-3 text-sm text-muted">
+          <li><a href="https://jobs.norinote.xyz" class="transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">Dashboard</a></li>
+          <li><a href="https://github.com/premxai/Nori" class="transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">GitHub</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Legal">
+        <p class="text-sm font-semibold">Legal</p>
+        <ul class="mt-4 flex flex-col gap-3 text-sm text-muted">
+          <li><a href="privacy.html" class="transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">Privacy</a></li>
+          <li><a href="terms.html" class="transition-colors duration-300 ease-base hover:text-ink focus-visible:outline-2 focus-visible:outline-kelp">Terms</a></li>
+        </ul>
+      </nav>
+    </div>
+    <p class="mx-auto mt-12 max-w-6xl text-sm text-muted">© 2026 Nori contributors · MIT licensed</p>
+  </footer>
+
+  <!-- ============ Demo dialog ============ -->
+  <dialog id="demo" aria-labelledby="demo-title" class="m-auto w-full max-w-xl bg-transparent p-4 font-sans text-ink backdrop:bg-transparent">
+    <div class="sheet rounded-3xl bg-surface p-8 text-center">
+      <div data-video class="hidden aspect-video overflow-hidden rounded-2xl bg-ink"></div>
+      <div data-empty>
+        <figure class="slot mx-auto size-32">
+          <img src="public/mascot/nori-camera.png" alt="" class="size-full object-contain" onerror="this.parentElement.classList.add('missing')">
+          <div class="slot-empty size-full items-center justify-center rounded-full bg-kelp-soft text-4xl text-kelp"><i class="ph-duotone ph-video-camera" aria-hidden="true"></i></div>
+        </figure>
+        <h2 id="demo-title" class="mt-6 text-2xl font-semibold">The demo is being recorded</h2>
+        <p class="mt-3 text-base text-muted">It walks through Nori finding a role, tailoring the resume and waiting for your OK. Until it's ready, the full code is open on GitHub.</p>
+        <div class="mt-8 flex flex-wrap justify-center gap-3">
+          <a href="https://github.com/premxai/Nori" class="flex items-center gap-2 rounded-xl bg-kelp px-3 py-2 text-base font-semibold text-white transition duration-300 ease-base hover:-translate-y-0.5 hover:bg-kelp-deep active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">
+            <i class="ph-duotone ph-github-logo text-xl" aria-hidden="true"></i> Read the code
+          </a>
+          <button type="button" data-close class="rounded-xl border border-line px-3 py-2 text-base font-semibold transition-colors duration-300 ease-base hover:bg-sand active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-kelp">Close</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    // Paste the demo video embed URL here once it is recorded.
+    const DEMO_URL = "";
+
+    // ---- Demo dialog
+    const dialog = document.getElementById("demo");
+    const videoBox = dialog.querySelector("[data-video]");
+    const empty = dialog.querySelector("[data-empty]");
+    document.querySelectorAll("[data-demo]").forEach((el) =>
+      el.addEventListener("click", () => {
+        setMenu(false);
+        if (DEMO_URL) {
+          videoBox.innerHTML = `<iframe class="size-full" src="${DEMO_URL}" title="Nori demo" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+          videoBox.classList.remove("hidden");
+          empty.classList.add("hidden");
+        }
+        dialog.showModal();
+      })
+    );
+    dialog.querySelector("[data-close]").addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
+    dialog.addEventListener("close", () => { if (DEMO_URL) videoBox.innerHTML = ""; });
+
+    // ---- Mobile menu
+    const toggle = document.querySelector("[data-menu-toggle]");
+    function setMenu(open) {
+      document.body.toggleAttribute("data-menu-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    }
+    toggle.addEventListener("click", () => setMenu(!document.body.hasAttribute("data-menu-open")));
+    document.querySelectorAll("#mobile-menu a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") setMenu(false); });
+
+    // ---- Scroll reveals, once
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -10% 0px" });
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+
+    // ---- Nav: mark the section in view
+    const spyLinks = [...document.querySelectorAll("[data-spy]")];
+    const spy = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        const link = spyLinks.find((l) => l.dataset.spy === e.target.id);
+        if (e.isIntersecting) link.setAttribute("aria-current", "true");
+        else link.removeAttribute("aria-current");
+      });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    spyLinks.forEach((l) => spy.observe(document.getElementById(l.dataset.spy)));
+
+    // ---- Tagline: light words in reading order as the line's center moves
+    // from 90% to 55% of the viewport height. One rAF per frame at most.
+    const tagline = document.querySelector("[data-tagline]");
+    const walker = document.createTreeWalker(tagline, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+    textNodes.forEach((node) => {
+      if (node.parentNode.closest("svg") || !node.textContent.trim()) return;
+      const frag = document.createDocumentFragment();
+      node.textContent.split(/(\s+)/).forEach((part) => {
+        if (!part.trim()) { frag.append(part); return; }
+        const span = document.createElement("span");
+        span.className = "word";
+        span.textContent = part;
+        frag.append(span);
+      });
+      node.replaceWith(frag);
+    });
+    const words = [...tagline.querySelectorAll(".word")];
+    let lit = 0;
+    let queued = false;
+    const light = () => {
+      queued = false;
+      const r = tagline.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const p = Math.min(1, Math.max(0, (vh * 0.9 - (r.top + r.height / 2)) / (vh * 0.35)));
+      const n = Math.round(p * words.length);
+      for (; lit < n; lit++) words[lit].classList.add("on");
+      if (lit === words.length) {
+        tagline.classList.add("done");
+        window.removeEventListener("scroll", onScroll);
+      }
+    };
+    const onScroll = () => { if (!queued) { queued = true; requestAnimationFrame(light); } };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      words.forEach((w) => w.classList.add("on"));
+      tagline.classList.add("done");
+    } else {
+      window.addEventListener("scroll", onScroll, { passive: true });
+      light();
+    }
+  </script>
+</body>
+</html>
