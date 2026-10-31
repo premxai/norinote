@@ -46,7 +46,15 @@ export function EventLog({ events, mode, collapsedTo = 5, bare }: {
           </button>
         )}
       </div>}
-      <div ref={ref} className={cx("rounded-control bg-sunken px-3 py-2", all && (bare ? "max-h-72 overflow-y-auto" : "max-h-96 overflow-y-auto"))} aria-live="polite">
+      {/* A scrolling log is focusable so keyboard users can scroll it too. */}
+      <div
+        ref={ref}
+        tabIndex={all ? 0 : undefined}
+        role={all ? "region" : undefined}
+        aria-label={all ? "Run log" : undefined}
+        className={cx("rounded-control bg-sunken px-3 py-2", all && (bare ? "max-h-72 overflow-y-auto" : "max-h-96 overflow-y-auto"), "focus-visible:outline-2 focus-visible:outline-accent")}
+        aria-live="polite"
+      >
         {events.length === 0 && <div className="py-1 text-meta text-muted">Waiting for the first step<span className="dots" /></div>}
         {shown.map((e, i) => (
           <div key={e.id ?? `${e.ts}-${i}`} className="grid grid-cols-[3.75rem_minmax(0,1fr)] gap-x-2 py-1">
