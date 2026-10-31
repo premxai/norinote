@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { ArrowLeft, ArrowUpRight, Check, ExternalLink, Pencil, RotateCcw, SkipForward } from "lucide-react";
 import { api, artifactUrl, USE_MOCK } from "@/lib/api";
-import { pct, STATUS_LABEL } from "@/lib/format";
+import { pct } from "@/lib/format";
 import {
   APPLICATION_STATUSES,
   type Application, type ApplicationDetail, type ApplicationStatus, type Company, type Job, type Resume, type ResumeContent, type RunEvent, type RunEventRow,
@@ -12,11 +12,10 @@ import {
 import { EventLog } from "./EventLog";
 import { ResearchView } from "./ResearchPanel";
 import { RecruiterView } from "./RecruiterView";
-import { ResumePreview } from "./ResumePreview";
 import { PIPELINE, Stepper } from "./Stepper";
 import { StatusPill } from "./StatusPill";
 import { TimeAgo } from "./TimeAgo";
-import { ChangeCard, type NodeInfo } from "./review/ChangeCard";
+import { ResumeMarkup, type NodeInfo } from "./review/ResumeMarkup";
 import { Accordion, Button, Card, Frame, Icon, LinkButton, Notice, cx, inputClass } from "./ui";
 
 const TERMINAL: ApplicationStatus[] = ["submitted", "failed", "skipped", "viewed", "replied", "interview", "offer", "rejected"];
@@ -53,7 +52,6 @@ export function ApplicationReview({ initial, nodes, liveSubmit }: { initial: App
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reverted, setReverted] = useState<Set<string>>(new Set());
-  const [selected, setSelected] = useState<string | null>(initial.resume?.changes[0]?.bulletId ?? null);
 
   const [answers, setAnswers] = useState<Record<string, string>>(initial.application.answers);
   const [pending, setPending] = useState<Record<string, string>>({});
@@ -187,54 +185,51 @@ export function ApplicationReview({ initial, nodes, liveSubmit }: { initial: App
 
   // ---- stage panels -------------------------------------------------------------------------------------------
 
+  const resumeFacts = resume && (
+    <p className="flex flex-wrap items-center gap-x-2 text-meta text-muted tnum">
+      {resume.edited && <span className="rounded-full bg-sunken px-2 py-0.5 text-[12px] font-medium text-ink">Edited by you</span>}
+      <span>ATS {resume.atsScore ?? "?"} · {resume.pages ?? "?"} page{resume.pages === 1 ? "" : "s"}</span>
+      {resume.keywordCoverage != null && <span>· keywords {pct(resume.keywordCoverage)}%</span>}
+      {!USE_MOCK && (
+        <a href={api.resumePdfUrl(resume.id)} target="_blank" rel="noreferrer" className="ml-1 inline-flex items-center gap-1 font-medium text-accent underline-offset-4 hover:underline">
+          PDF <Icon icon={ArrowUpRight} size={13} />
+        </a>
+      )}
+    </p>
+  );
+
   const resumePanel = resume && (
     <section aria-labelledby="stage-h" className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 id="stage-h" className="text-title font-semibold text-ink">
-          {resume.changes.length > 0 ? `${resume.changes.length} change${resume.changes.length === 1 ? "" : "s"}, each from your graph` : "Your resume for this job"}
-        </h2>
-        <p className="flex flex-wrap items-center gap-x-2 text-meta text-muted tnum">
-          {resume.edited && <span className="rounded-full bg-sunken px-2 py-0.5 text-[12px] font-medium text-ink">Edited by you</span>}
-          {resume.templateId && <span>{resume.templateId === "ats" ? "ATS Standard" : resume.templateId.charAt(0).toUpperCase() + resume.templateId.slice(1)} template ·</span>}
-          <span>ATS {resume.atsScore ?? "?"} · {resume.pages ?? "?"} page{resume.pages === 1 ? "" : "s"}</span>
-          {resume.keywordCoverage != null && <span>· keywords {Math.round(resume.keywordCoverage * 100)}%</span>}
-        </p>
-      </div>
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <div className="flex flex-col gap-3">
-          {resume.changes.length > 0 ? (
-            <ul className="flex flex-col gap-2.5">
-              {resume.changes.map((c) => (
-                <ChangeCard
-                  key={c.bulletId}
-                  change={c}
-                  nodes={nodes}
-                  kept={!reverted.has(c.bulletId)}
-                  disabled={app.status !== "resume_review" || busy !== null}
-                  selected={selected === c.bulletId}
-                  onSelect={() => setSelected(c.bulletId)}
-                  onKeep={(k) => setReverted((s) => { const n = new Set(s); if (k) n.delete(c.bulletId); else n.add(c.bulletId); return n; })}
-                />
-              ))}
-            </ul>
-          ) : (
-            <p className="rounded-card bg-sunken px-4 py-3 text-body-sm text-ink-2">Nothing needed changing: your base resume already fits this posting.</p>
-          )}
-          {gaps.length > 0 && (
-            <div className="rounded-card bg-sunken px-4 py-3">
-              <p className="text-body-sm font-semibold text-ink">Not claimed</p>
-              <p className="mt-0.5 text-meta text-ink-2">
-                The posting asks for {gaps.map((g) => g.skill).join(", ")}. Nothing in your graph shows it, so it is left out.{" "}
-                <Link href="/graph" className="font-medium text-accent underline-offset-4 hover:underline">Add a fact</Link>
-              </p>
-            </div>
-          )}
-          {USE_MOCK && reverted.size > 0 && <p className="text-meta text-muted">Demo mode keeps reverts on this screen only.</p>}
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <div className="min-w-0">
+          <h2 id="stage-h" className="text-display-md text-ink">
+            {resume.changes.length > 0 ? `${resume.changes.length} line${resume.changes.length === 1 ? "" : "s"} changed for this job` : "Your resume for this job"}
+          </h2>
+          <p className="mt-1.5 text-meta text-muted">
+            {resume.changes.length > 0 ? "Highlighted lines are new. Click one to see what it replaced and where it came from." : "Nothing needed changing: your base resume already fits this posting."}
+          </p>
         </div>
-        <Frame className="overflow-hidden p-1.5">
-          <ResumePreview resume={resume} className="h-[520px] rounded-[8px] xl:h-[640px]" />
-        </Frame>
+        {resumeFacts}
       </div>
+      <Frame className="overflow-hidden">
+        <div className="px-5 py-6 sm:max-h-[72vh] sm:overflow-y-auto sm:px-10 sm:py-9">
+          <ResumeMarkup
+            content={resume.content}
+            changes={resume.changes}
+            nodes={nodes}
+            reverted={reverted}
+            disabled={app.status !== "resume_review" || busy !== null}
+            onKeep={(id, k) => setReverted((s) => { const n = new Set(s); if (k) n.delete(id); else n.add(id); return n; })}
+          />
+        </div>
+      </Frame>
+      {gaps.length > 0 && (
+        <p className="text-meta text-muted">
+          Left out: the posting asks for {gaps.map((g) => g.skill).join(", ")}, and nothing in your graph shows it.{" "}
+          <Link href="/graph" className="font-medium text-accent underline-offset-4 hover:underline">Add a fact</Link>
+        </p>
+      )}
+      {USE_MOCK && reverted.size > 0 && <p className="text-meta text-muted">Demo mode keeps reverts on this screen only.</p>}
       {resume.atsChecks.length > 0 && (
         <Accordion title="Applicant system checks" meta={`${resume.atsChecks.filter((c) => c.pass).length} of ${resume.atsChecks.length} pass`}>
           <ul className="flex flex-col gap-1.5">
@@ -428,7 +423,7 @@ export function ApplicationReview({ initial, nodes, liveSubmit }: { initial: App
     ) : null;
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-8">
       {/* header */}
       <header className="flex flex-col gap-3">
         <Link href="/applications" className="inline-flex w-fit items-center gap-1.5 text-meta text-muted hover:text-ink">
@@ -436,8 +431,8 @@ export function ApplicationReview({ initial, nodes, liveSubmit }: { initial: App
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
           <div className="min-w-0">
-            <h1 className="text-balance text-[1.5rem] font-semibold leading-tight tracking-[-0.015em] text-ink sm:text-display-lg">{job.title}</h1>
-            <p className="mt-1 text-body text-ink-2">
+            <h1 className="text-balance text-[1.75rem] leading-tight text-ink sm:text-display-lg">{job.title}</h1>
+            <p className="mt-2 text-body text-ink-2">
               {job.companyName}{job.location && <span className="text-muted"> · {job.location}</span>}
             </p>
           </div>
@@ -464,41 +459,46 @@ export function ApplicationReview({ initial, nodes, liveSubmit }: { initial: App
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="flex min-w-0 flex-col gap-5">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,1fr)_280px] xl:gap-10">
+        <div className="flex min-w-0 flex-col gap-6">
           {stage}
           {footer}
           {app.status !== "resume_review" && resume && !showResume && (
             <Accordion title="The resume that was used" meta={`${app.resumeApprovedAt ? "Approved · " : ""}ATS ${resume.atsScore ?? "?"}`}>
               <div className="flex flex-col gap-3">
-                <Frame className="overflow-hidden p-1.5"><ResumePreview resume={resume} className="h-[520px] rounded-[8px]" /></Frame>
-                {!USE_MOCK && <a href={api.resumePdfUrl(resume.id)} target="_blank" rel="noreferrer" className="inline-flex w-fit items-center gap-1 text-meta font-medium text-accent underline-offset-4 hover:underline">Open PDF <Icon icon={ArrowUpRight} size={14} /></a>}
+                {resumeFacts}
+                <div className="max-h-[60vh] overflow-y-auto rounded-control border border-line bg-white px-5 py-6 sm:px-8">
+                  <ResumeMarkup content={resume.content} changes={resume.changes} nodes={nodes} />
+                </div>
               </div>
             </Accordion>
           )}
         </div>
 
-        <aside className="flex min-w-0 flex-col gap-4">
+        <aside className="flex min-w-0 flex-col gap-3">
           <Card title="Job">
             <dl className="flex flex-col gap-1.5 text-meta">
               <div className="flex justify-between gap-3"><dt className="text-muted">Company</dt><dd className="text-right text-ink">{job.companyName}</dd></div>
               {job.location && <div className="flex justify-between gap-3"><dt className="text-muted">Location</dt><dd className="text-right text-ink">{job.location}{job.remote ? ", remote OK" : ""}</dd></div>}
-              {recruiter && <div className="flex justify-between gap-3"><dt className="text-muted">Recruiter read</dt><dd className="text-right text-ink tnum">{recruiter.score} of 100</dd></div>}
-              {resume?.keywordCoverage != null && <div className="flex justify-between gap-3"><dt className="text-muted">Keywords covered</dt><dd className="text-ink tnum">{pct(resume.keywordCoverage)}%</dd></div>}
               <div className="flex justify-between gap-3"><dt className="text-muted">Started</dt><dd className="text-ink"><TimeAgo iso={app.createdAt} /></dd></div>
             </dl>
             <Link href={`/jobs?job=${job.id}`} className="mt-3 inline-flex items-center gap-1 text-meta font-medium text-accent underline-offset-4 hover:underline">Posting, requirements, research</Link>
           </Card>
-          {recruiter && <RecruiterView review={recruiter} />}
-          <Card><EventLog events={events} mode={mode} /></Card>
-          <Accordion title="Company research" meta={company?.name ?? job.companyName}>
+          {recruiter && (
+            <Accordion title="Recruiter's view" meta={`${recruiter.score} of 100`}>
+              <RecruiterView review={recruiter} bare />
+            </Accordion>
+          )}
+          <Accordion title="Run log" meta={mode === "idle" ? `${events.length} steps` : "running"} defaultOpen={live}>
+            <EventLog events={events} mode={mode} bare />
+          </Accordion>
+          <Accordion title="Company research" meta={company?.research ? undefined : "none yet"}>
             {company?.research ? <ResearchView research={company.research} /> : (
               <p className="text-body-sm text-muted">
-                None yet. <Link href={`/jobs?job=${job.id}`} className="font-medium text-accent underline-offset-4 hover:underline">Run it from the job</Link>.
+                <Link href={`/jobs?job=${job.id}`} className="font-medium text-accent underline-offset-4 hover:underline">Run it from the job</Link>.
               </p>
             )}
           </Accordion>
-          <p className="px-1 text-[12px] text-muted">{app.attempts} attempt{app.attempts === 1 ? "" : "s"} · {STATUS_LABEL[app.status]} <TimeAgo iso={app.updatedAt} /></p>
         </aside>
       </div>
     </div>
@@ -513,8 +513,8 @@ function ActionBar({ next, primary, extra, onSkip, busy, warn }: { next: string;
   return (
     <div className="sticky bottom-[calc(3.75rem+env(safe-area-inset-bottom))] z-30 -mx-4 border-t border-line bg-bg/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:rounded-card sm:border sm:bg-surface sm:px-4 lg:bottom-0">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <p className="min-w-0 flex-1 text-meta text-muted">{warn ? <span className="text-attn-fg">{warn}</span> : next}</p>
-        <div className="flex flex-wrap items-center gap-2">
+        <p className={cx("min-w-0 flex-1 text-meta text-muted", !warn && "hidden sm:block")}>{warn ? <span className="text-attn-fg">{warn}</span> : next}</p>
+        <div className="flex flex-1 flex-wrap items-center justify-end gap-2 sm:flex-none">
           {extra}
           <Button variant="secondary" icon={SkipForward} onClick={onSkip} disabled={busy}>Skip job</Button>
           {primary}
@@ -525,6 +525,6 @@ function ActionBar({ next, primary, extra, onSkip, busy, warn }: { next: string;
 }
 
 function mockScreenshot(company: string): string {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500"><rect width="800" height="500" fill="#f3f1ed"/><rect x="0" y="0" width="800" height="48" fill="#2b2722"/><text x="24" y="31" font-family="sans-serif" font-size="18" fill="#fffefc">${company}</text><rect x="200" y="120" width="400" height="220" rx="12" fill="#fffefc" stroke="#e9e5df"/><circle cx="400" cy="180" r="22" fill="#2f5a8a"/><path d="M389 181l8 8 15-17" stroke="#fffefc" stroke-width="4" fill="none"/><text x="400" y="250" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#2b2722">Application received</text><text x="400" y="280" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#6b645b">Thank you for applying. We will be in touch.</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500"><rect width="800" height="500" fill="#f1f0ea"/><rect x="0" y="0" width="800" height="48" fill="#1a1914"/><text x="24" y="31" font-family="sans-serif" font-size="18" fill="#fbfaf7">${company}</text><rect x="200" y="120" width="400" height="220" rx="12" fill="#fbfaf7" stroke="#e2dfd6"/><circle cx="400" cy="180" r="22" fill="#0f766e"/><path d="M389 181l8 8 15-17" stroke="#fbfaf7" stroke-width="4" fill="none"/><text x="400" y="250" text-anchor="middle" font-family="sans-serif" font-size="20" fill="#1a1914">Application received</text><text x="400" y="280" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#5f5d55">Thank you for applying. We will be in touch.</text></svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }

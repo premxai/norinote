@@ -1,7 +1,9 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { api, ApiError, USE_MOCK } from "@/lib/api";
 import { NEEDS_YOU } from "@/lib/format";
 import { Shell, type ShellData } from "@/components/Shell";
+import { RAIL_COOKIE } from "@/lib/site";
 
 async function shellData(): Promise<ShellData> {
   const data: ShellData = {
@@ -35,5 +37,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // Any other failure (API down, older API without the route) falls through to the pages, which show their own errors.
   if (!(ob instanceof Error) && ob && typeof ob === "object" && "step" in ob && ob.step !== "done") redirect("/onboarding");
   const data = await shellData();
-  return <Shell data={data}>{children}</Shell>;
+  const railCollapsed = (await cookies()).get(RAIL_COOKIE)?.value === "collapsed";
+  return <Shell data={data} railCollapsed={railCollapsed}>{children}</Shell>;
 }

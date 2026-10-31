@@ -24,10 +24,10 @@ export function cycleSummary(activity: AgentActivity[]) {
 }
 
 /** Everything the agent did, newest first, one line each. */
-export function ActivityFeed({ items, limit = 12 }: { items: AgentActivity[]; limit?: number }) {
+export function ActivityFeed({ items, limit = 40 }: { items: AgentActivity[]; limit?: number }) {
   if (items.length === 0) return <p className="py-4 text-body-sm text-muted">Nothing yet. The first cycle will show up here.</p>;
   return (
-    <ol className="divide-y divide-line">
+    <ol className="-mr-2 max-h-[26rem] divide-y divide-line overflow-y-auto pr-2">
       {items.slice(0, limit).map((a) => {
         const waiting = a.kind === "review_requested" || a.kind === "needs_user";
         const body = (

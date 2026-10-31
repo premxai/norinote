@@ -133,7 +133,7 @@ export function CompanionView({ initialStatus, initialActivity, initialError }: 
 
         <h2 className="flex items-center gap-2 text-[13px] font-semibold text-ink">
           Waiting on you
-          {waiting.length > 0 && <span className="rounded-full bg-attn-tint px-1.5 text-[11px] font-semibold leading-5 text-attn-fg ring-1 ring-inset ring-attn tnum">{waiting.length}</span>}
+          {waiting.length > 0 && <span className="rounded-full bg-attn-tint px-1.5 text-[11px] font-semibold leading-5 text-attn-fg tnum">{waiting.length}</span>}
         </h2>
         {waiting.length === 0 ? (
           <p className="mt-1.5 text-[12.5px] text-muted">Nothing waiting. Nothing was sent without you.</p>
@@ -142,7 +142,7 @@ export function CompanionView({ initialStatus, initialActivity, initialError }: 
             {waiting.map((a) => {
               const form = a.status === "form_review";
               return (
-                <li key={stepKey(a)} className="rounded-card border-2 border-attn bg-surface p-2.5">
+                <li key={stepKey(a)} className="rounded-card border border-line bg-surface p-2.5">
                   <p className="truncate text-[13px] font-semibold text-ink">{a.title}</p>
                   <p className="truncate text-[12px] text-muted tnum">
                     {a.companyName} · {form ? "form filled, read it before it goes" : `resume ready, ${a.changes} change${a.changes === 1 ? "" : "s"}`}{a.atsScore != null && <> · ATS {a.atsScore}</>}

@@ -4,14 +4,15 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import {
-  Briefcase, Ellipsis, FileText, Inbox, MessageCircle, Network, Send, Settings, SlidersHorizontal, Sun, UserRound, X,
+  Briefcase, Ellipsis, FileText, Inbox, MessageCircle, Network, PanelLeftClose, PanelLeftOpen, Send, Settings, SlidersHorizontal, Sun, UserRound, X,
   type LucideIcon,
 } from "lucide-react";
 import { cx } from "./cx";
 import { Icon } from "./Icon";
-import { NoriLogo } from "./Logo";
+import { NoriLogo, NoriMark } from "./Logo";
 import { LogoutButton } from "./LogoutButton";
 import { DryRunBand } from "./DryRunBand";
+import { RAIL_COOKIE } from "@/lib/site";
 
 export type ShellData = {
   applicationsCount: number;
@@ -75,60 +76,114 @@ const isActive = (pathname: string, href: string) => pathname === href || pathna
 function Count({ n, attn }: { n: number; attn?: boolean }) {
   if (n <= 0) return null;
   return (
-    <span className={cx("min-w-5 rounded-full px-1.5 text-center text-[11px] font-semibold leading-5 tnum", attn ? "bg-attn-tint text-attn-fg ring-1 ring-inset ring-attn" : "bg-sunken text-ink-2")}>
+    <span className={cx("min-w-5 rounded-full px-1.5 text-center text-[11px] font-semibold leading-5 tnum", attn ? "bg-attn-tint text-attn-fg" : "bg-sunken text-ink-2")}>
       {n}
       <span className="sr-only">{attn ? " waiting on you" : " new"}</span>
     </span>
   );
 }
 
-function RailLink({ item, data, pathname, onNavigate }: { item: NavItem; data: ShellData; pathname: string; onNavigate?: () => void }) {
+function RailLink({ item, data, pathname, onNavigate, collapsed }: { item: NavItem; data: ShellData; pathname: string; onNavigate?: () => void; collapsed?: boolean }) {
   const active = isActive(pathname, item.href);
+  const n = item.count?.(data) ?? 0;
   return (
     <li>
       <Link
         href={item.href}
         onClick={onNavigate}
         aria-current={active ? "page" : undefined}
+        title={collapsed ? item.label : undefined}
         className={cx(
-          "flex min-h-9 items-center gap-3 rounded-control px-3 text-[13.5px] transition-colors duration-150",
-          active ? "bg-sunken font-semibold text-ink" : "font-medium text-ink-2 hover:bg-sunken/70 hover:text-ink",
+          "flex min-h-9 items-center rounded-control text-[13.5px] transition-colors duration-200",
+          collapsed ? "relative justify-center" : "gap-3 px-3",
+          active ? "bg-white font-semibold text-ink shadow-[0_1px_2px_rgb(26_25_20/0.06)] ring-1 ring-line" : "font-medium text-ink-2 hover:bg-sunken hover:text-ink",
         )}
       >
-        <Icon icon={item.icon} size={17} className={active ? "text-ink" : "text-muted"} />
-        <span className="flex-1">{item.label}</span>
-        <Count n={item.count?.(data) ?? 0} attn={item.attn} />
+        <Icon icon={item.icon} size={17} className={active ? "text-accent" : "text-muted"} />
+        {collapsed ? (
+          <>
+            <span className="sr-only">{item.label}{n > 0 ? `, ${n}${item.attn ? " waiting on you" : " new"}` : ""}</span>
+            {n > 0 && <span aria-hidden="true" className={cx("absolute right-2 top-1.5 h-2 w-2 rounded-full ring-2 ring-surface", item.attn ? "bg-attn" : "bg-accent")} />}
+          </>
+        ) : (
+          <>
+            <span className="flex-1">{item.label}</span>
+            <Count n={n} attn={item.attn} />
+          </>
+        )}
       </Link>
     </li>
   );
 }
 
-function Rail({ data, pathname }: { data: ShellData; pathname: string }) {
+/** Desktop sidebar. Collapses to an icon strip; labels stay available as tooltips and to screen readers. */
+function Rail({ data, pathname, collapsed, onToggle }: { data: ShellData; pathname: string; collapsed: boolean; onToggle: () => void }) {
+  const toggle = (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={!collapsed}
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-muted transition-colors duration-200 hover:bg-sunken hover:text-ink"
+    >
+      <Icon icon={collapsed ? PanelLeftOpen : PanelLeftClose} size={17} />
+    </button>
+  );
   return (
-    <aside className="sticky top-0 hidden h-[100dvh] w-[var(--rail-w)] shrink-0 flex-col border-r border-line px-3 py-5 lg:flex">
-      <Link href="/dashboard" aria-label="Nori, Today" className="mb-6 inline-flex px-3"><NoriLogo size={28} /></Link>
-      <nav aria-label="Main" className="flex flex-col gap-5">
-        {NAV.map((g) => (
+    <aside
+      className={cx(
+        "sticky top-0 hidden h-[100dvh] shrink-0 flex-col overflow-y-auto overflow-x-hidden whitespace-nowrap border-r border-line bg-surface px-3 py-6 transition-[width] duration-300 ease-[var(--ease)] lg:flex",
+        collapsed ? "w-[72px]" : "w-[var(--rail-w)]",
+      )}
+    >
+      {collapsed ? (
+        <div className="mb-6 flex flex-col items-center gap-3">
+          <Link href="/dashboard" aria-label="Nori, Today" className="inline-flex"><NoriMark size={28} /></Link>
+          {toggle}
+        </div>
+      ) : (
+        <div className="mb-8 flex items-center justify-between gap-2 pl-3">
+          <Link href="/dashboard" aria-label="Nori, Today" className="inline-flex"><NoriLogo size={28} /></Link>
+          {toggle}
+        </div>
+      )}
+      <nav aria-label="Main" className={cx("flex flex-col", collapsed ? "gap-3" : "gap-6")}>
+        {NAV.map((g, gi) => (
           <div key={g.label}>
-            <p className="mb-1 px-3 text-[12px] font-medium text-muted">{g.label}</p>
-            <ul className="flex flex-col gap-0.5">{g.items.map((i) => <RailLink key={i.href} item={i} data={data} pathname={pathname} />)}</ul>
+            {collapsed ? gi > 0 && <div aria-hidden="true" className="mx-2 mb-3 h-px bg-line" /> : <p className="eyebrow mb-2 px-3">{g.label}</p>}
+            <ul className="flex flex-col gap-0.5" aria-label={collapsed ? g.label : undefined}>
+              {g.items.map((i) => <RailLink key={i.href} item={i} data={data} pathname={pathname} collapsed={collapsed} />)}
+            </ul>
           </div>
         ))}
       </nav>
-      <div className="mt-auto flex flex-col gap-3">
-        <ul className="flex flex-col gap-0.5">{FOOT.map((i) => <RailLink key={i.href} item={i} data={data} pathname={pathname} />)}</ul>
-        <div className="flex items-center justify-between gap-2 border-t border-line px-3 pt-3">
-          <span className="min-w-0 truncate text-meta text-ink-2">{data.userName}</span>
-          <LogoutButton />
-        </div>
-        {data.mock && <p className="px-3 text-[12px] text-muted">Demo data, nothing is real.</p>}
+      <div className="mt-auto flex flex-col gap-3 pt-6">
+        <ul className="flex flex-col gap-0.5">{FOOT.map((i) => <RailLink key={i.href} item={i} data={data} pathname={pathname} collapsed={collapsed} />)}</ul>
+        {collapsed ? (
+          <div className="flex justify-center border-t border-line pt-3"><LogoutButton iconOnly /></div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between gap-2 border-t border-line px-3 pt-3">
+              <span className="min-w-0 truncate text-meta text-ink-2">{data.userName}</span>
+              <LogoutButton />
+            </div>
+            {data.mock && <p className="px-3 text-[12px] text-muted">Demo data, nothing is real.</p>}
+          </>
+        )}
       </div>
     </aside>
   );
 }
 
-export function Shell({ data, children }: { data: ShellData; children: ReactNode }) {
+export function Shell({ data, railCollapsed = false, children }: { data: ShellData; railCollapsed?: boolean; children: ReactNode }) {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(railCollapsed);
+  const toggleRail = () => {
+    const next = !collapsed;
+    setCollapsed(next);
+    document.cookie = `${RAIL_COOKIE}=${next ? "collapsed" : "open"}; path=/; max-age=31536000; samesite=lax`;
+  };
   // The More sheet belongs to the page it was opened on, so moving to another page closes it without an effect.
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
@@ -143,20 +198,20 @@ export function Shell({ data, children }: { data: ShellData; children: ReactNode
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-control focus:bg-ink focus:px-3 focus:py-2 focus:text-on-ink">Skip to content</a>
       {!data.liveSubmit && <DryRunBand />}
       <div className="flex min-h-0 flex-1">
-        <Rail data={data} pathname={pathname} />
+        <Rail data={data} pathname={pathname} collapsed={collapsed} onToggle={toggleRail} />
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* phone top bar */}
           <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-bg px-4 lg:hidden">
             <Link href="/dashboard" aria-label="Nori, Today"><NoriLogo size={26} /></Link>
             {data.needsYouCount > 0 && (
-              <Link href="/dashboard" className="inline-flex h-8 items-center gap-1.5 rounded-full bg-attn-tint px-3 text-[12px] font-semibold text-attn-fg ring-1 ring-inset ring-attn">
+              <Link href="/dashboard" className="inline-flex h-8 items-center gap-1.5 rounded-full bg-attn-tint px-3 text-[12px] font-semibold text-attn-fg">
                 {data.needsYouCount} waiting on you
               </Link>
             )}
           </header>
 
-          <main id="main" className="mx-auto w-full max-w-[var(--content-max)] flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-16 lg:pt-8">{children}</main>
+          <main id="main" className="mx-auto w-full max-w-[var(--content-max)] flex-1 px-4 pb-28 pt-8 sm:px-6 lg:px-12 lg:pb-20 lg:pt-12">{children}</main>
         </div>
       </div>
 

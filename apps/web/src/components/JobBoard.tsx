@@ -33,47 +33,58 @@ function CheckRow({ checked, onChange, label, count }: { checked: boolean; onCha
   );
 }
 
-/** One job as a row: who, what, where, how well it matches and why, and the one action that fits its state. */
+/**
+ * One job as a card: company and when it was posted, the role, where and how, three skills, then the match and the one
+ * action that fits its state. The whole card opens the details; the action in the footer stays its own button.
+ */
 export function BoardCard({ item, app, href }: { item: JobWithMatch; app?: BoardApp | null; href: string }) {
   const { job, match } = item;
   const mode = workMode(job);
   const place = placeName(job.location);
   const sen = seniorityKey(job);
-  const chips = skillChips(match, 4);
+  const chips = skillChips(match, 3);
   const status = app?.status ?? item.applicationStatus ?? null;
   const waiting = status ? STATUS_MARK[status] === "accent" : false;
+  // "Remote (US)" leaves "(US)" as the place; show it as "US".
+  const where = [place?.replace(/^\((.*)\)$/, "$1") ?? (mode === "Remote" ? "Anywhere" : null), mode, sen ? seniorityLabel(sen) : null].filter(Boolean).join(" · ");
 
   return (
-    <article className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:gap-4">
-      <Monogram name={job.companyName} size={40} className="hidden sm:inline-flex" />
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <Link href={href} scroll={false} className="min-w-0 text-body-sm font-semibold text-ink underline-offset-4 hover:underline sm:text-[15px]">{job.title}</Link>
-          <MatchBadge score={match?.score} />
-        </div>
-        <p className="mt-0.5 truncate text-meta text-muted">
-          {job.companyName} · {place ?? (mode === "Remote" ? "Anywhere" : "Location not listed")} · {mode}{sen ? ` · ${seniorityLabel(sen)}` : ""} · {sourceLabel(job.atsType)} · <TimeAgo iso={postedIso(job)} />
-        </p>
-        {chips.length > 0 && (
-          <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Skills the posting asks for">
-            {chips.map((c) => (
-              <li
-                key={c.name}
-                title={c.matched ? "In your career graph" : `Not in your graph${c.required ? " (required)" : ""}`}
-                className={cx("rounded-full px-2 py-[1px] text-[12px]", c.matched ? "bg-sunken text-ink" : "border border-dashed border-control text-muted")}
-              >
-                {c.name}<span className="sr-only">{c.matched ? ", in your graph" : ", missing"}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+    <article className="group relative flex h-full flex-col rounded-card border border-line bg-surface p-5 transition duration-300 ease-[var(--ease)] hover:-translate-y-0.5 hover:border-control hover:shadow-[0_16px_32px_-24px_rgb(26_25_20/0.35)]">
+      <div className="flex items-center gap-3">
+        <Monogram name={job.companyName} size={32} />
+        <p className="min-w-0 flex-1 truncate text-meta font-medium text-ink-2">{job.companyName}</p>
+        <TimeAgo iso={postedIso(job)} className="shrink-0 text-[12px] text-muted" />
       </div>
-      <div className="flex shrink-0 items-center gap-2 sm:justify-end">
-        <Link href={href} scroll={false} className="inline-flex h-8 items-center rounded-control px-2.5 text-[13px] font-medium text-ink-2 hover:bg-sunken">Details</Link>
+
+      <h3 className="mt-4 text-[1.1875rem] leading-snug text-ink [font-family:var(--font-display)]">
+        {/* Stretched link: the whole card opens the details, without nesting the footer's buttons inside a link. */}
+        <Link href={href} scroll={false} className="underline-offset-4 after:absolute after:inset-0 after:rounded-card after:content-[''] group-hover:underline focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-accent">
+          {job.title}
+        </Link>
+      </h3>
+      {where && <p className="mt-1.5 text-meta text-muted">{where}</p>}
+
+      {chips.length > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Skills the posting asks for">
+          {chips.map((c) => (
+            <li
+              key={c.name}
+              title={c.matched ? "In your career graph" : `Not in your graph${c.required ? " (required)" : ""}`}
+              className={cx("rounded-full px-2.5 py-0.5 text-[12px]", c.matched ? "bg-sunken text-ink-2" : "border border-dashed border-control text-muted")}
+            >
+              {c.name}<span className="sr-only">{c.matched ? ", in your graph" : ", missing"}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div aria-hidden="true" className="min-h-5 flex-1" />
+      <div className="relative z-10 flex items-center justify-between gap-3 border-t border-line pt-4">
+        <MatchBadge score={match?.score} />
         {status ? (
           <Link
             href={app ? `/applications/${app.id}` : href}
-            className={cx("inline-flex h-8 items-center gap-1.5 rounded-control px-3 text-[12px] font-semibold", waiting ? "bg-attn-tint text-attn-fg ring-1 ring-inset ring-attn" : "bg-sunken text-ink-2")}
+            className={cx("inline-flex h-8 items-center gap-1.5 rounded-control px-3 text-[12px] font-semibold", waiting ? "bg-attn-tint text-attn-fg" : "bg-sunken text-ink-2")}
           >
             <span className="sr-only">Applied: </span>{STATUS_LABEL[status] ?? status} <Icon icon={ArrowRight} size={13} />
           </Link>
@@ -138,7 +149,7 @@ export function JobBoard({ items, apps, initial }: { items: JobWithMatch[]; apps
     return out.sort((a, b) => (f.sort === "new" ? t(b) - t(a) : (b.match?.score ?? -1) - (a.match?.score ?? -1) || t(b) - t(a)));
   }, [items, apps, f]);
 
-  const PAGE = 20;
+  const PAGE = 12;
   const [page, setPage] = useState({ key: params, n: PAGE });
   const limit = page.key === params ? page.n : PAGE;
   const visible = shown.slice(0, limit);
@@ -206,7 +217,7 @@ export function JobBoard({ items, apps, initial }: { items: JobWithMatch[]; apps
 
       <p className="text-meta text-muted tnum">
         <span className="font-semibold text-ink">{shown.length}</span> of {items.length} roles, {f.sort === "new" ? "newest first" : "best match first"}.
-        <span className="ml-2 hidden sm:inline">Solid chips are in your graph; dashed ones are missing.</span>
+        <span className="ml-2 hidden sm:inline">Dashed skills are not in your graph yet.</span>
       </p>
 
       {shown.length === 0 ? (
@@ -215,9 +226,9 @@ export function JobBoard({ items, apps, initial }: { items: JobWithMatch[]; apps
         </EmptyState>
       ) : (
         <>
-          <ul className="divide-y divide-line rounded-card border border-line bg-surface">
+          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {visible.map((item) => (
-              <li key={item.job.id} className="min-w-0 hover:bg-sunken/40">
+              <li key={item.job.id} className="min-w-0">
                 <BoardCard item={item} app={apps[item.job.id]} href={hrefFor(item.job.id)} />
               </li>
             ))}

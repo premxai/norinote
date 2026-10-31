@@ -24,7 +24,7 @@ export function SectionHeader({ label, title, description, actions, as: H = "h2"
   return (
     <header className={cx("flex flex-wrap items-end justify-between gap-x-6 gap-y-3", rule && "border-t border-line pt-5", className)}>
       <div className="min-w-0 max-w-[60ch]">
-        {showLabel && <p className="mb-1 text-meta font-medium text-muted">{label}</p>}
+        {showLabel && <p className="eyebrow mb-3">{label}</p>}
         <H
           className={cx(
             "font-semibold text-balance text-ink",

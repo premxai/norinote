@@ -32,7 +32,7 @@ function CheckRow({ ok, children, detail }: { ok: boolean | null; children: Reac
         className={cx(
           "mt-1 h-3 w-3 shrink-0 rounded-full",
           ok === true && "bg-accent",
-          ok === false && "border-2 border-attn",
+          ok === false && "bg-attn",
           ok === null && "border border-control",
         )}
       />

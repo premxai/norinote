@@ -20,16 +20,16 @@ const SEVERITY: Record<"high" | "medium" | "low", string> = { high: "bg-danger",
  * What a recruiter would see on this resume for this job: a score, what is working, what is not and how to fix it, and each
  * skill the posting asks for with whether the resume shows it. A missing skill is never filled in for you: it says so.
  */
-export function RecruiterView({ review }: { review: RecruiterReview }) {
+export function RecruiterView({ review, bare }: { review: RecruiterReview; bare?: boolean }) {
   const v = VERDICT[review.verdict];
   const musts = [...review.musts].sort((a, b) => Number(b.required) - Number(a.required) || a.status.localeCompare(b.status));
   const missing = musts.filter((m) => m.status === "missing" && m.required);
   return (
-    <section aria-labelledby="recruiter-h" className="rounded-card border border-line bg-surface p-4 sm:p-5">
+    <section aria-labelledby="recruiter-h" className={bare ? "" : "rounded-card border border-line bg-surface p-4 sm:p-5"}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <IndexLabel>Recruiter&apos;s view</IndexLabel>
-          <h3 id="recruiter-h" className="mt-1 text-title font-semibold text-ink">{v.label}: {review.score} out of 100</h3>
+          {!bare && <IndexLabel>Recruiter&apos;s view</IndexLabel>}
+          <h3 id="recruiter-h" className={cx(!bare && "mt-1", "text-title font-semibold text-ink")}>{v.label}: {review.score} out of 100</h3>
           <p className="mt-1 text-body-sm text-muted">{v.line}</p>
         </div>
         <div className="text-meta text-muted tnum" aria-label="Resume facts">
