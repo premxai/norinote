@@ -52,7 +52,7 @@ export const STATUS_ICON: Record<ApplicationStatus, LucideIcon> = {
 };
 
 const STYLE: Record<MarkTone, string> = {
-  accent: "bg-attn-tint text-attn-fg ring-1 ring-inset ring-attn",
+  accent: "bg-attn-tint text-attn-fg",
   ink: "bg-accent-tint text-accent-fg",
   hollow: "bg-sunken text-ink",
   outline: "bg-danger-tint text-danger-fg",

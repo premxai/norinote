@@ -20,7 +20,7 @@ export const TONE_MARK: Record<Tone, MarkTone> = {
  */
 export const PILL_TONE: Record<MarkTone | "none", string> = {
   ink: "bg-accent-tint text-accent-fg",
-  accent: "bg-attn-tint text-attn-fg ring-1 ring-inset ring-attn",
+  accent: "bg-attn-tint text-attn-fg",
   hollow: "bg-sunken text-ink",
   outline: "bg-danger-tint text-danger-fg",
   muted: "bg-sunken text-muted",

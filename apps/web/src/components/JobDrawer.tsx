@@ -76,7 +76,7 @@ export function JobDrawer({ detail, closeHref, application }: {
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {application ? (
-              <Link href={`/applications/${application.id}`} className={cx("inline-flex h-10 items-center gap-2 rounded-control px-4 text-[13px] font-semibold", waiting ? "bg-attn-tint text-attn-fg ring-1 ring-inset ring-attn" : "bg-sunken text-ink")}>
+              <Link href={`/applications/${application.id}`} className={cx("inline-flex h-10 items-center gap-2 rounded-control px-4 text-[13px] font-semibold", waiting ? "bg-attn-tint text-attn-fg" : "bg-sunken text-ink")}>
                 {STATUS_LABEL[application.status] ?? application.status} <Icon icon={ArrowRight} size={14} />
               </Link>
             ) : (

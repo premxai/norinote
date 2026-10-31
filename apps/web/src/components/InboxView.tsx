@@ -96,11 +96,11 @@ export function InboxView({ initial, appTitles }: { initial: InboxMessage[]; app
       {messages.length === 0 ? (
         <EmptyState title="No mail yet">Connect Gmail in Settings so codes, replies and interview invites arrive here and move your applications along.</EmptyState>
       ) : (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          <div className="flex min-w-0 flex-col gap-4">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <div className="flex min-w-0 flex-col gap-6 lg:max-h-[calc(100dvh-14rem)] lg:overflow-y-auto lg:pr-2">
             {groups.filter(([, list]) => list.length > 0).map(([label, list]) => (
               <section key={label} aria-label={label}>
-                <h2 className="mb-2 text-meta font-medium text-muted">{label}</h2>
+                <h2 className="eyebrow mb-3">{label}</h2>
                 <ul className="divide-y divide-line rounded-card border border-line bg-surface">
                   {list.map((m) => (
                     <li key={m.id}>
@@ -128,7 +128,7 @@ export function InboxView({ initial, appTitles }: { initial: InboxMessage[]; app
           </div>
 
           {selected && (
-            <Frame as="article" className="self-start">
+            <Frame as="article" className="self-start lg:sticky lg:top-8">
               <header className="border-b border-line p-4 sm:p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <KindPill kind={selected.kind} />

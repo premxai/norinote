@@ -127,7 +127,7 @@ export function ApplicationsView({ items }: { items: ApplicationListItem[] }) {
             className={cx(
               "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-medium transition-colors",
               filter === f.id ? "border-ink bg-ink text-on-ink" : "border-line bg-surface text-ink-2 hover:border-control",
-              f.id === "needs" && filter !== f.id && "border-attn text-attn-fg",
+              f.id === "needs" && filter !== f.id && "text-attn-fg",
             )}
           >
             {f.label}
@@ -143,10 +143,10 @@ export function ApplicationsView({ items }: { items: ApplicationListItem[] }) {
       ) : (
         <>
           {/* desktop table */}
-          <div className="hidden overflow-x-auto rounded-card border border-line bg-surface md:block">
+          <div className="hidden max-h-[70vh] overflow-auto rounded-card border border-line bg-surface md:block">
             <table className="w-full text-left text-body-sm">
-              <thead>
-                <tr className="border-b border-line text-[12px] text-muted">
+              <thead className="sticky top-0 z-10 bg-surface shadow-[inset_0_-1px_0_var(--line)]">
+                <tr className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-muted">
                   <th scope="col" className="px-4 py-2.5 font-medium">Role</th>
                   <th scope="col" className="px-3 py-2.5 font-medium">Stage</th>
                   <th scope="col" className="px-3 py-2.5 font-medium">Resume</th>
@@ -159,7 +159,7 @@ export function ApplicationsView({ items }: { items: ApplicationListItem[] }) {
                 {rows.map((i) => {
                   const waiting = NEEDS_YOU.includes(i.application.status);
                   return (
-                    <tr key={i.application.id} className={cx("hover:bg-sunken/50", waiting && "bg-attn-tint/30")}>
+                    <tr key={i.application.id} className="hover:bg-sunken/50">
                       <td className="px-4 py-3">
                         <Link href={`/applications/${i.application.id}`} className="group flex min-w-0 items-center gap-3">
                           <Monogram name={i.job.companyName} size={34} />
@@ -187,7 +187,7 @@ export function ApplicationsView({ items }: { items: ApplicationListItem[] }) {
               const waiting = NEEDS_YOU.includes(i.application.status);
               return (
                 <li key={i.application.id}>
-                  <Link href={`/applications/${i.application.id}`} className={cx("flex flex-col gap-1.5 rounded-card border bg-surface p-3.5", waiting ? "border-2 border-attn" : "border-line")}>
+                  <Link href={`/applications/${i.application.id}`} className={"flex flex-col gap-1.5 rounded-card border border-line bg-surface p-4"}>
                     <div className="flex items-start justify-between gap-3">
                       <span className="min-w-0">
                         <span className="block truncate font-semibold text-ink">{i.job.title}</span>

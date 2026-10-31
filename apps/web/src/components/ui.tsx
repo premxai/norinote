@@ -27,7 +27,7 @@ export function Chip({ children, tone = "slate", className }: { children: ReactN
 export function PageHeader({ label, title, subtitle, actions }: {
   label?: ReactNode; title: ReactNode; subtitle?: ReactNode; actions?: ReactNode; index?: string;
 }) {
-  return <SectionHeader as="h1" size="xl" label={label} title={title} description={subtitle} actions={actions} className="mb-6 sm:mb-8" />;
+  return <SectionHeader as="h1" size="xl" label={label} title={title} description={subtitle} actions={actions} className="mb-8 sm:mb-10" />;
 }
 
 /** Card with an optional header row: a title on the left, actions on the right. */
@@ -37,12 +37,12 @@ export function Card({ children, className, title, actions, pad = true, id, tone
   return (
     <Frame as="section" className={className} id={id} tone={tone}>
       {(title || actions) && (
-        <header className="flex min-h-12 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-line px-4 py-2.5 sm:px-5">
-          <h2 className="text-body-sm font-semibold text-ink">{title}</h2>
+        <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-5 pt-5 sm:px-6">
+          <h2 className="eyebrow">{title}</h2>
           {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </header>
       )}
-      <div className={pad ? "p-4 sm:p-5" : ""}>{children}</div>
+      <div className={pad ? (title || actions ? "px-5 pt-4 pb-5 sm:px-6 sm:pb-6" : "p-5 sm:p-6") : ""}>{children}</div>
     </Frame>
   );
 }

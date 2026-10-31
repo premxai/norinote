@@ -87,7 +87,7 @@ export function CompaniesView({ initial }: { initial: CompanyList }) {
             </EmptyState>
           </div>
         ) : (
-          <ul aria-label="Companies" className="mt-4 divide-y divide-line border-y border-line">
+          <ul aria-label="Companies" className="mt-4 max-h-[70vh] divide-y divide-line overflow-y-auto border-y border-line">
             {data.companies.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 py-3.5">
                 <div className="min-w-0">

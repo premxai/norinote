@@ -13,11 +13,13 @@ const levelClass = { info: "text-ink-2", warn: "text-attn-fg", error: "text-dang
  * Run log: named steps with times, newest last. Shows the last `collapsedTo` lines until "Show all".
  * Announces new lines politely to screen readers.
  */
-export function EventLog({ events, mode, collapsedTo = 5 }: {
+export function EventLog({ events, mode, collapsedTo = 5, bare }: {
   events: RunEventRow[]; mode: "live" | "polling" | "simulated" | "idle"; collapsedTo?: number;
+  /** Inside a titled container: no "Run log" heading, and every step in a short scrolling box. */
+  bare?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [all, setAll] = useState(false);
+  const [all, setAll] = useState(bare ?? false);
   useEffect(() => {
     const el = ref.current;
     if (el) el.scrollTop = el.scrollHeight;
@@ -29,7 +31,7 @@ export function EventLog({ events, mode, collapsedTo = 5 }: {
   const hidden = events.length - shown.length;
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between gap-3">
+      {!bare && <div className="mb-2 flex items-center justify-between gap-3">
         <span className="inline-flex items-center gap-2 text-body-sm font-semibold text-ink">
           Run log
           <span className="inline-flex items-center gap-1.5 text-meta font-normal text-muted">
@@ -43,8 +45,8 @@ export function EventLog({ events, mode, collapsedTo = 5 }: {
             <Icon icon={all ? ChevronUp : ChevronDown} size={14} />
           </button>
         )}
-      </div>
-      <div ref={ref} className={cx("rounded-control bg-sunken px-3 py-2", all && "max-h-96 overflow-y-auto")} aria-live="polite">
+      </div>}
+      <div ref={ref} className={cx("rounded-control bg-sunken px-3 py-2", all && (bare ? "max-h-72 overflow-y-auto" : "max-h-96 overflow-y-auto"))} aria-live="polite">
         {events.length === 0 && <div className="py-1 text-meta text-muted">Waiting for the first step<span className="dots" /></div>}
         {shown.map((e, i) => (
           <div key={e.id ?? `${e.ts}-${i}`} className="grid grid-cols-[3.75rem_minmax(0,1fr)] gap-x-2 py-1">

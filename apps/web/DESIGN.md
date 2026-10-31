@@ -8,8 +8,8 @@ If a screen grows rainbow badges, gradients, shadows or a colour that means noth
 
 1. **Nothing is sent without you knowing.** Every signed-in page shows the dry run band while the server's submit
    lock is off. Approve buttons say what happens ("Approve resume", "Approve form", "Answer and send").
-2. **Show the evidence.** Every line Nori wrote shows its source one tap away. What it cannot support is shown as a
-   gap ("Not claimed"), never filled in.
+2. **Show the evidence.** Every line Nori wrote is highlighted on the resume itself; one tap shows the line it replaced
+   and its source. What it cannot support is listed as left out, never filled in.
 3. **One decision at a time.** A review screen asks for one thing; the primary action sits at the bottom, with Skip
    beside it. On phones the action bar sticks above the tab bar.
 4. **Calm while slow.** Long steps name what is happening and say it is safe to leave. A running step shows three
@@ -39,7 +39,7 @@ pairing passes WCAG AA (4.5:1); control edges pass 3:1.
 | Danger | `danger`, `danger-tint`, `danger-fg` | `#b4281c` | failures, errors, destructive actions |
 
 Rules:
-- **Amber only means "you must act".** Waiting cards get a 2px `border-attn` edge; nothing decorative is amber.
+- **Amber only means "you must act".** It appears as a soft pill or a small dot, never as a card edge or ring; nothing decorative is amber.
 - **Violet only means dry run.** Live mode shows no band at all.
 - **A rejection is not red.** It is an outcome; red is for failures and destructive actions.
 - **Never colour alone.** Every pill carries a word; working stages add a breathing dot, skipped is dashed, an offer
@@ -51,13 +51,14 @@ Rules:
 Three families, as on the landing site: Geist (`--font-geist`) for all UI text, Newsreader (`--font-newsreader`,
 `font-display`) for display type, Geist Mono for times and codes. A rule in `globals.css` sets every
 `text-display-*` size and every `h1` in Newsreader at weight 400, so headings need no extra class. UI text uses
-400 and 600. Sentence case everywhere; no uppercase labels, no index numbers.
+400 and 600. Sentence case everywhere, with one exception taken from the landing site: the `.eyebrow` class, an 11px
+Geist Mono uppercase label with wide tracking, used for card headings, rail group labels and the date above a page title.
 
 | Utility | Size / line height | Use |
 | --- | --- | --- |
-| `text-display-xl` | 32 / 1.15 | page `h1` (28px on phones), serif |
-| `text-display-lg` | 26 / 1.2 | review title, big numbers, serif |
-| `text-display-md` | 22 / 1.25 | drawer and message titles, serif |
+| `text-display-xl` | 44 / 1.05 | page `h1` (36px on phones), serif |
+| `text-display-lg` | 32 / 1.1 | review title, big numbers, serif |
+| `text-display-md` | 24 / 1.2 | section titles, drawer and message titles, stat numbers, serif |
 | `text-title` | 17 / 1.35 | section headings |
 | `text-body` | 15 / 1.55 | reading text |
 | `text-body-sm` | 14 / 1.5 | default UI text |
@@ -83,8 +84,8 @@ Primitives are re-exported from `ui.tsx`.
 
 | Component | Notes |
 | --- | --- |
-| `Frame` | Flat card. `surface="paper" \| "stone" \| "none"`, `tone="attn"` for the amber edge. |
-| `Card` | `Frame` with a title row and actions. |
+| `Frame` | Flat card. `surface="paper" \| "stone" \| "none"`. `tone="attn"` stays a quiet card; the amber lives in the pill inside it. |
+| `Card` | `Frame` with an eyebrow title (mono uppercase) and actions above roomy content, no divider. |
 | `Button`, `LinkButton`, `TextLink` | `primary` ink, `secondary` outlined, `ghost` text, `danger` brick outline. Sizes `sm` 32, `md` 40, `lg` 48. |
 | `Field`, `inputClass`, `Toggle`, `Switch` | Sentence-case labels above; teal focus ring. |
 | `Pill`, `Tag`, `StatusPill` | Status by meaning (see Colour). |
@@ -94,8 +95,8 @@ Primitives are re-exported from `ui.tsx`.
 | `DryRunBand` | Full-width violet band; `compact` for the companion. |
 | `Stepper` | Segments: done teal, current amber at a gate or teal while working, upcoming faint. |
 | `EventLog` | The run log, named steps with times, polite live region. |
-| `review/ChangeCard` | One tailored line: what it replaced, the new line, a source button that opens the fact, Keep and Revert. |
-| `today/WaitingList` | Amber-edged cards, each one link to its decision with the button label that answers it. |
+| `review/ResumeMarkup` | The resume as a page, changed lines highlighted in place. A tap opens the old line, the reason, the graph facts, Keep and Revert. |
+| `today/WaitingList` | Quiet cards with an amber pill, each one link to its decision with the button label that answers it. |
 
 ## Pages
 

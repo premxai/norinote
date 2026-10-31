@@ -43,8 +43,8 @@ function CapCard({ status }: { status: AgentStatus | null }) {
         <span className="text-display-md font-semibold text-ink tnum">{used}<span className="text-body-sm font-normal text-muted"> of {cap}</span></span>
         <span className="text-meta text-muted">{lanesOn} lane{lanesOn === 1 ? "" : "s"} on</span>
       </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-sunken" role="progressbar" aria-valuemin={0} aria-valuemax={cap} aria-valuenow={used} aria-label="Applications started today">
-        <div className="h-full rounded-full bg-ink" style={{ width: `${share}%` }} />
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-sunken" role="progressbar" aria-valuemin={0} aria-valuemax={cap} aria-valuenow={used} aria-label="Applications started today">
+        <div className="h-full rounded-full bg-accent" style={{ width: `${share}%` }} />
       </div>
       {cap === 0 && <p className="mt-2 text-meta text-attn-fg">The cap is 0, so Nori starts nothing on its own.</p>}
       <div className="mt-5 border-t border-line pt-4">
@@ -78,23 +78,24 @@ export default async function TodayPage() {
   const replies = inbox.filter((m) => REPLY_KINDS.includes(m.kind)).sort((a, b) => +new Date(b.receivedAt) - +new Date(a.receivedAt)).slice(0, 4);
 
   return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-start justify-between gap-4">
+    <div className="flex flex-col gap-10">
+      <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          <h1 className="text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] text-ink sm:text-display-xl">Today</h1>
-          <div className="mt-1"><StatusLine status={status} /></div>
+          <p className="eyebrow" suppressHydrationWarning>{new Date().toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" })}</p>
+          <h1 className="mt-3 text-[2.25rem] text-ink sm:text-display-xl">Today</h1>
+          <div className="mt-3"><StatusLine status={status} /></div>
         </div>
         <RunCycle />
       </header>
 
       {apps === null && <Notice tone="red">Cannot load your applications right now. Try again in a moment.</Notice>}
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <section className="flex flex-col gap-3 lg:col-span-2" aria-labelledby="waiting-h">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <section className="flex flex-col gap-4 lg:col-span-2" aria-labelledby="waiting-h">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 id="waiting-h" className="flex items-center gap-2 text-title font-semibold text-ink">
+            <h2 id="waiting-h" className="flex items-center gap-3 text-display-md text-ink">
               Waiting on you
-              {waiting.length > 0 && <span className="rounded-full bg-attn-tint px-2 text-[12px] font-semibold leading-5 text-attn-fg ring-1 ring-inset ring-attn tnum">{waiting.length}</span>}
+              {waiting.length > 0 && <span className="inline-flex items-center gap-1.5 rounded-full bg-attn-tint px-2.5 font-sans text-[12px] font-semibold leading-6 text-attn-fg tnum"><span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-attn" />{waiting.length}</span>}
             </h2>
             <TextLink href="/applications">All applications</TextLink>
           </div>
@@ -108,12 +109,12 @@ export default async function TodayPage() {
           )}
         </section>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-6">
           <CapCard status={status} />
         </div>
 
         <Card className="lg:col-span-2" title={status?.lastTickAt ? <span suppressHydrationWarning>Last 24 hours</span> : "Last 24 hours"}>
-          <dl className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {[
               ["Found", cycle.found],
               ["Queued", cycle.queued],
@@ -121,9 +122,9 @@ export default async function TodayPage() {
               ["Waiting", cycle.waiting],
               ["Sent", cycle.sent],
             ].map(([k, v]) => (
-              <div key={k as string} className="rounded-control bg-sunken px-3 py-2.5">
+              <div key={k as string} className="flex flex-col-reverse justify-end gap-1 rounded-control border border-line bg-white px-4 py-3">
                 <dt className="text-[12px] text-muted">{k}</dt>
-                <dd className="text-title font-semibold text-ink tnum">{v}</dd>
+                <dd className="text-display-md text-ink tnum">{v}</dd>
               </div>
             ))}
           </dl>

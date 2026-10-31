@@ -12,7 +12,7 @@ export function Ticks(props: { className?: string }) {
 /**
  * The base surface: a flat warm card with a faint edge, no shadow.
  * `surface="paper"` (default) is the card colour, `"stone"` a sunken tone, `"none"` a dashed outline on the page.
- * `tone="attn"` draws the orange edge that means "you must act before Nori continues".
+ * `tone="attn"` marks a card that needs the person; it stays a quiet card, the amber lives in the pill inside it.
  */
 export function Frame({ as: Tag = "div", children, className, ticks, surface = "paper", tone, pad, id, style }: {
   as?: FrameTag;
@@ -37,7 +37,7 @@ export function Frame({ as: Tag = "div", children, className, ticks, surface = "
         surface === "paper" && "border border-line bg-surface",
         surface === "stone" && "bg-sunken",
         surface === "none" && "border border-dashed border-line",
-        tone === "attn" && "border-2 border-attn",
+        tone === "attn" && "border border-line",
         pad === "sm" && "p-4",
         pad === "md" && "p-5",
         pad === "lg" && "p-6 sm:p-7",
