@@ -13,3 +13,6 @@ data
 playwright-report
 test-results
 apps/web/design-shots
+
+# The landing site deploys on its own (Vercel); the API image does not need it
+apps/landing

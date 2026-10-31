@@ -17,6 +17,7 @@
     "agent": "cross-env CHANNEL_CONSOLE=1 tsx apps/worker/src/index.ts",
     "agent:tick": "tsx apps/worker/src/tick.ts",
     "web": "npm run dev --workspace apps/web",
+    "landing": "npm run dev --prefix apps/landing",
     "companion": "node apps/companion/scripts/start.js",
     "db:migrate": "tsx packages/core/src/db/migrate.ts",
     "seed": "tsx apps/worker/src/seed.ts",
